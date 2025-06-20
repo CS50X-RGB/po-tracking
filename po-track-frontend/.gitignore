@@ -16,7 +16,7 @@
 /build
 
 # backend_link
-/core/api/axiosInstance.tsx
+#/core/api/axiosInstance.tsx
 
 # misc
 .DS_Store
