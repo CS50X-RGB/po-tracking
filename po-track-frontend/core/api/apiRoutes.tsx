@@ -1,0 +1,46 @@
+export const accountRoutes = {
+  login: "/user/login",
+  signin: "/user/signin",
+  updateImage: "/user/update/photo",
+  block: "/user/block",
+  getMyProfile: "/user/profile",
+  getMineProfile: "/user/my/user",
+  deleteById: "/user/remove",
+  updateUser: "/user/update/",
+  allUsers: "/user/all-users",
+};
+export const rolesRoutes = {
+  getAll: "/role/all/roles",
+  getPermission: "/role/all/permissions",
+  update: "/role/update/permissions",
+};
+
+export const partNumbersRoutes = {
+  partImport: "/part/create",
+  getAllParts: "/part/all",
+  deletePartById: "/part/delete",
+  searchByPart: "part/search/all",
+};
+export const poRoutes = {
+  createPo: "/po/new/create",
+};
+export const masterRoutes = {
+  createClient: "/master/create/client",
+  createSubClients: "/master/create/client_branch",
+  getClient: "/master/client/",
+  getSubClient: "/master/client/clientId",
+  // search
+  getPaymentTerms: "/master/get/entity/",
+  getClients: "/master/get/clients/",
+  getAllClientBranches: "/master/get/client_branch",
+  getAllSupplier: "/master/get/supplier",
+  //suppliers
+  createSupplier: "/master/create/supplier",
+  createSubSupplier: "/master/create/supplier_branch",
+  getSupplier: "/master/get/supplier/",
+  getSubSupplier: "/master/supplier/supplierId",
+};
+
+export const uomRoutes = {
+  getAllUom: "/uom/all",
+};
