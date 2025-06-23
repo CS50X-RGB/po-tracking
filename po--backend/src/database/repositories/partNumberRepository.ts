@@ -4,43 +4,41 @@ import { ObjectId } from "mongoose";
 
 class PartNumberRepository {
     constructor() { }
+
+    //function to create the part numbers in bulk
     public async createpartNumbers(partNumberObjects: PartNumberCreationInterface[]) {
         try {
-            let objs = [];
-            let updateCnt = 0;
-            for (const partNumber of partNumberObjects) {
-                const existing = await PartNumberModel.findOne({
-                    name: partNumber.name,
-                    description: partNumber.description
-                });
-                if (existing) {
-                    const needsUpdate =
-                        existing.in_stock !== partNumber.in_stock ||
-                        existing.reorder_qty !== partNumber.reorder_qty;
-                    if (needsUpdate) {
-                        existing.in_stock = partNumber.in_stock;
-                        existing.reorder_qty = partNumber.reorder_qty;
-                        existing.save();
-                        updateCnt++;
-                    }
-                }
+            //Extract all unique descriptions from input
+            const descriptions = partNumberObjects.map(p => p.description);
 
-                if (!existing) {
-                    objs.push(partNumber);
-                }
-            }
-            if (objs.length > 0) {
-                const createInsert = await PartNumberModel.insertMany(objs);
-                objs = createInsert.map((p: any) => p.toObject());
+            //Find which descriptions already exist in DB
+            const existingDocs = await PartNumberModel.find({
+                description: { $in: descriptions }
+            }).select('description');
+
+            const existingDescriptions = new Set(existingDocs.map(doc => doc.description));
+
+            //Filter: keep only new ones
+            const toInsert = partNumberObjects.filter(
+                p => !existingDescriptions.has(p.description)
+            );
+
+            //Insert only new ones
+            let inserted: any[] = [];
+            if (toInsert.length > 0) {
+                inserted = await PartNumberModel.insertMany(toInsert, { ordered: false });
             }
             return {
-                partNumbers: objs,
-                updated: updateCnt
-            };
+                partNumbers: inserted.map(p => p.toObject()),
+                created: inserted.length,
+                existing: existingDescriptions.size
+            }
         } catch (error) {
             throw Error('Error while creating bulk Part Numbers');
         }
     }
+    
+    //function to create only signle part number
     public async createPartNumber(partNumberObject: PartNumberCreationInterface) {
         try {
             const partNumber = await PartNumberModel.create(partNumberObject);
@@ -113,42 +111,6 @@ class PartNumberRepository {
             throw Error('Error while getting  Part Number by name');
         }
     }
-    public async lockPartNumber(partNumberId: ObjectId, qty: number): Promise<any | null> {
-        try {
-            const updatePartNumber = await PartNumberModel.findByIdAndUpdate(
-                partNumberId,
-                {
-                    $inc: {
-                        locked_qty: qty,
-                        in_stock: -qty,
-                    },
-                },
-                { new: true }
-            );
-            return updatePartNumber;
-        } catch (error) {
-            console.error("Error locking part number:", error);
-            throw error;
-        }
-    }
-    public async realsePartNumber(partNumberId: ObjectId, qty: number): Promise<any | null> {
-        try {
-            const updatePartNumber = await PartNumberModel.findByIdAndUpdate(
-                partNumberId,
-                {
-                    $inc: {
-                        locked_qty: -qty,
-                        in_stock: qty,
-                    },
-                },
-                { new: true }
-            );
-            return updatePartNumber;
-        } catch (error) {
-            console.error("Error locking part number:", error);
-            throw error;
-        }
-    }
     public async getPartNumberById(partNumber: any) {
         try {
             const partNumberEntity = await PartNumberModel.findById(partNumber).lean(); // ✅ chain lean() before await
@@ -158,7 +120,7 @@ class PartNumberRepository {
             throw new Error("Error while getting part number");
         }
     }
-    public async countPartNumber(){
+    public async countPartNumber() {
         try {
             const countPartNumbers = await PartNumberModel.countDocuments();
             return countPartNumbers;
@@ -166,16 +128,7 @@ class PartNumberRepository {
             throw new Error(`Error while counting part Number`);
         }
     }
-    public async getZeroPartCountNumbers(){
-        try {
-            const countZeroInStock = await PartNumberModel.find({
-                in_stock : 0
-            }).countDocuments();
-            return countZeroInStock;
-        } catch (error) {
-            throw new Error('Error Count With 0 Part Number')
-        }
-    }
+
 }
 
 export default PartNumberRepository;

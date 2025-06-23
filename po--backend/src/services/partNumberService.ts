@@ -24,11 +24,13 @@ class PartNumberService {
             const formattedData: PartNumberCreationInterface[] = sheetData.map((row: any) => ({
                 name: row["Name"],
                 description: row["Description"],
-                in_stock: Number(row["In Stock Quantity"]),
-                reorder_qty: Number(row["Re Order Level"]),
             }));
-            const { partNumbers, updated } = await this.partNumberRepo.createpartNumbers(formattedData);
-            return res.sendArrayFormatted(partNumbers, `Created Part Numbers ${partNumbers.length} and updated ${updated} part number`, 200);
+            const { partNumbers, created, existing } = await this.partNumberRepo.createpartNumbers(formattedData);
+            return res.sendArrayFormatted(
+                partNumbers,
+                `Created ${created} Part Numbers and found ${existing} existing part numbers`,
+                200
+            );
         } catch (error) {
             return res.sendError(error, "Error while creating part Numbers", 500);
         }
