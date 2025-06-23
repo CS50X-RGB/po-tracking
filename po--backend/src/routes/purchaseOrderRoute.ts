@@ -10,6 +10,9 @@ router.get('/all',poService.getPO.bind(poService))
 
 router.get('/all/:id',poService.getPOById.bind(poService));
 
-router.delete('/delete/:id',poService.deletePOBYID.bind(poService))
+router.delete('/delete/:id',poService.deletePOById.bind(poService))
+
+
+router.post("/new/add/li/:poId", poService.createLineItem.bind(poService));
 
 export default router;
