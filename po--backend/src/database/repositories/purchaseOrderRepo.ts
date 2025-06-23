@@ -25,18 +25,6 @@ class PurchaseOrderRepo {
     }
   }
 
-  //function to delete PO in bulk
-  // public async deletePurchaseOrdersInBulk(ids: ObjectId[]) {
-  //   try {
-  //     const result = await PurchaseOrderModel.deleteMany({
-  //       _id: { $in: ids }
-  //     });
-  //     return result.deletedCount;
-  //   } catch (error) {
-  //     throw new Error(`Error while Bulk deleting the PO`);
-  //   }
-  // }
-
   //Function to get All Purchase order
   public async getAllPO() {
     try {
@@ -46,7 +34,7 @@ class PurchaseOrderRepo {
         .populate("freight_term")
         .populate("payment_term")
         .lean()
-        
+
 
       return POs;
     } catch (error) {
@@ -68,7 +56,34 @@ class PurchaseOrderRepo {
     }
   }
 
-  
+
+  public async getExwDate(id: any, date_required: Date) {
+    try {
+      const purchaseOrder: any =
+        await PurchaseOrderModel.findById(id).populate("client_branch");
+
+      if (!purchaseOrder || !purchaseOrder.client_branch) {
+        throw new Error("Purchase order or client branch not found");
+      }
+
+      const clientBranch = purchaseOrder.client_branch as any;
+      const exw_duration = clientBranch.exw_duration;
+
+      if (!exw_duration || typeof exw_duration !== "number") {
+        throw new Error("EXW duration is missing or invalid in client branch");
+      }
+
+      const requiredDate = new Date(date_required);
+      const exw_date = new Date(requiredDate);
+      exw_date.setDate(requiredDate.getDate() - exw_duration);
+
+      return exw_date;
+    } catch (error: any) {
+      throw new Error(`Error while calculating EXW date: ${error.message}`);
+    }
+  }
+
+
 }
 
 export default PurchaseOrderRepo;
