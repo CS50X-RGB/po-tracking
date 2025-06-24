@@ -7,6 +7,15 @@ import ProgressUpdateModel from "../models/progressUpdateModel";
 
 class ProgressUpdateRepo {
   constructor() {}
+  //function to create a progress upate entiry for a line item
+  public async createProgressUpdate(data: { LI: string }) {
+    try {
+      return await ProgressUpdateModel.create(data);
+    } catch (error) {
+      console.error(error, "Error creating ProgressUpdate");
+      throw new Error("Failed to create ProgressUpdate");
+    }
+  }
 
   //RAW mateial progress update
   public async createRawMaterial(

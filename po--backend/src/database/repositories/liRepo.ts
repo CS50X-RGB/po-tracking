@@ -17,8 +17,6 @@ class LineItemRepo {
       throw new Error(`Error while creating the line item: ${error.message}`);
     }
   }
-  //accept line item method
-  //SSN and Suplier readiness dater dallin h line item entity jo myjhe
 
   public async accepteLineItem(
     id: string,
@@ -35,7 +33,14 @@ class LineItemRepo {
       const updatedLi = await LineItemModel.findByIdAndUpdate(id, filter, {
         new: true,
       });
+
+      if (!updatedLi) {
+        throw new Error(`Line Item with ID ${id} not found`);
+      }
       // Create Progress Update Entity by line item id
+      const progressUpdate = await this.progresUpdateRepo.createProgressUpdate({
+        LI: id,
+      });
 
       return updatedLi;
     } catch (error) {
