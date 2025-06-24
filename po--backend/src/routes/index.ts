@@ -5,6 +5,7 @@ import partNumberRouter from "./partNumberRoute";
 import uomRouter from "./uomRoute";
 import masterRouter from "./masterDataRoute";
 import poRouter from "./purchaseOrderRoute";
+import progressUpdateRouter from "./progressUpdateRouter";
 
 const router = Router();
 const version = "v1";
@@ -17,4 +18,5 @@ router.use(`${prefix}/part`, partNumberRouter);
 router.use(`${prefix}/uom`, uomRouter);
 router.use(`${prefix}/master`, masterRouter);
 router.use(`${prefix}/po`, poRouter);
+router.use(`${prefix}/progressUpdate`, progressUpdateRouter);
 export default router;

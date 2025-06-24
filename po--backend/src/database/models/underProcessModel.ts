@@ -1,60 +1,60 @@
 import mongoose, { Schema } from "mongoose";
 
 export enum underProcessStatus {
-    OPEN = 'open',
-    INPROGRESS = 'in-progress',
-    PARTIALLY_COMPLETED = 'partially-completed',
-    COMPLETED = 'completed'
+  OPEN = "open",
+  INPROGRESS = "in-progress",
+  PARTIALLY_COMPLETED = "partially-completed",
+  COMPLETED = "completed",
 }
 
 export enum underProcessType {
-    IN_HOUSE = 'in-house',
-    OUTSOURCED = 'outsourced'
+  IN_HOUSE = "in-house",
+  OUTSOURCED = "outsourced",
 }
 
 export interface IunderProcess extends Document {
-    type: underProcessType,
-    completedQuantity: number,
-    pendingQuantity: number,
-    planDate: Date,
-    actualDate: Date,
-    UPstatus: underProcessStatus,
-    LI:mongoose.Schema.Types.ObjectId
+  type: underProcessType;
+  completedQuantity: number;
+  pendingQuantity: number;
+  planDate: Date;
+  actualDate: Date;
+  UPstatus: underProcessStatus;
+  LI: mongoose.Schema.Types.ObjectId;
+}
 
-};
-
-const UnderProcessSchema = new Schema<IunderProcess>({
+const UnderProcessSchema = new Schema<IunderProcess>(
+  {
     type: {
-        type: String,
-        enum: underProcessType,
-        default: underProcessType.IN_HOUSE
+      type: String,
+      enum: underProcessType,
+      default: underProcessType.IN_HOUSE,
     },
     completedQuantity: {
-        type: Number,
-        required: true,
+      type: Number,
+      required: true,
     },
     pendingQuantity: {
-        type: Number,
-
+      type: Number,
     },
     planDate: {
-        type: Date,
-        required: true,
+      type: Date,
     },
     actualDate: {
-        type: Date,
-
+      type: Date,
     },
     UPstatus: {
-        type: String,
-        enum: underProcessStatus
+      type: String,
+      enum: underProcessStatus,
     },
     LI: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "line_item",
-        required: true,
-    }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "line_item",
+    },
+  },
+  { timestamps: true },
+);
 
-}, { timestamps: true })
-
-export default mongoose.model<IunderProcess>('underProcess', UnderProcessSchema);
+export default mongoose.model<IunderProcess>(
+  "underProcess",
+  UnderProcessSchema,
+);

@@ -1,74 +1,71 @@
 import mongoose, { Schema } from "mongoose";
 
 export enum rawMaterialStatus {
-    OPEN = 'open',
-    INTRANSIST = 'in-transist',
-    PARTIALRECEIVED = 'partial-received',
-    RECEIVED = 'received'
+  OPEN = "open",
+  INTRANSIST = "in-transist",
+  PARTIALRECEIVED = "partial-received",
+  RECEIVED = "received",
 }
 
 export enum rawMaterialSources {
-    IMPORTED = 'imported',
-    LOCAL = 'local'
+  IMPORTED = "imported",
+  LOCAL = "local",
 }
 
 export enum RMtracker {
-    NOT_STARTED = 'not-started',
-    ON_TRACK = 'on-track',
-    DELAYED = 'delayed'
+  NOT_STARTED = "not-started",
+  ON_TRACK = "on-track",
+  DELAYED = "delayed",
 }
 
 export interface IRawMaterial extends Document {
-    source: rawMaterialSources,
-    inStock: number,
-    received: number,
-    planDate: Date,
-    actualDate: Date,
-    RMstatus: rawMaterialStatus,
-    RMtracker: RMtracker,
-    LI:mongoose.Schema.Types.ObjectId,
+  source: rawMaterialSources;
+  inStock: number;
+  received: number;
+  planDate: Date;
+  actualDate: Date;
+  RMstatus: rawMaterialStatus;
+  RMtracker: RMtracker;
+  LI: mongoose.Schema.Types.ObjectId;
+}
 
-};
-
-const RawMaterialSchema = new Schema<IRawMaterial>({
+const RawMaterialSchema = new Schema<IRawMaterial>(
+  {
     source: {
-        type: String,
-        enum: rawMaterialSources,
-        default: rawMaterialSources.LOCAL
+      type: String,
+      enum: rawMaterialSources,
+      default: rawMaterialSources.LOCAL,
     },
     inStock: {
-        type: Number,
-        required: true,
+      type: Number,
+      required: true,
     },
     received: {
-        type: Number,
-
+      type: Number,
     },
     planDate: {
-        type: Date,
-        required: true,
+      type: Date,
     },
     actualDate: {
-        type: Date,
-
+      type: Date,
     },
     RMstatus: {
-        type: String,
-        enum: rawMaterialStatus
+      type: String,
+      enum: rawMaterialStatus,
+      default: rawMaterialStatus.OPEN,
     },
     RMtracker: {
-        type: String,
-        enum: RMtracker,
-        default: RMtracker.NOT_STARTED
+      type: String,
+      enum: RMtracker,
+      default: RMtracker.NOT_STARTED,
     },
 
     LI: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "line_item",
-        required: true,
-    }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "line_item",
+    },
+  },
+  { timestamps: true },
+);
 
-
-}, { timestamps: true })
-
-export default mongoose.model<IRawMaterial>('RawMaterial', RawMaterialSchema);
+export default mongoose.model<IRawMaterial>("RawMaterial", RawMaterialSchema);
