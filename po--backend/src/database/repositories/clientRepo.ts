@@ -19,6 +19,28 @@ class ClientRepo {
       throw new Error(`Error while creatin client`);
     }
   }
+  public async getEntity<T>(
+    type: "Client" | "Client_Branch" | "Payment_Term" | "Frieght_Term",
+    name: string,
+  ): Promise<T | null> {
+    try {
+      switch (type) {
+        case "Client":
+          return await Client.findOne({ name }).lean<T>().exec();
+        case "Client_Branch":
+          return await ClientBranchModel.findOne({ name }).lean<T>().exec();
+        case "Payment_Term":
+          return await PaymentTerms.findOne({ name }).lean<T>().exec();
+        case "Frieght_Term":
+          return await FrieghtTermsModel.findOne({ name }).lean<T>().exec();
+        default:
+          return null;
+      }
+    } catch (error) {
+      console.error(`Error fetching entity of type ${type}:`, error);
+      throw error;
+    }
+  }
 
   public async createPaymentOrFrieght(
     name: RoleInterface,

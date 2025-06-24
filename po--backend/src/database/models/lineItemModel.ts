@@ -17,6 +17,7 @@ type LineItemStatus =
 type LineItemType = "Production" | "FAI";
 
 export interface ILineItemModel extends Document {
+  name: string;
   partNumber: mongoose.Schema.Types.ObjectId;
   supplier: mongoose.Schema.Types.ObjectId;
   unit_cost: number;
@@ -25,15 +26,23 @@ export interface ILineItemModel extends Document {
   supplier_readliness_date: Date;
   exw_date: Date;
   ssn: string;
+  priority: string;
+  uom: mongoose.Schema.Types.ObjectId;
   purchaseOrder: mongoose.Schema.Types.ObjectId;
   order_date: Date;
+  date_required: Date;
   open_qty: number;
+  currency: string;
   value_delivered: number;
   line_item_status: LineItemStatus;
   line_item_type: LineItemType;
 }
 
 const lineItemSchema = new Schema<ILineItemModel>({
+  name: {
+    type: String,
+    required: true,
+  },
   partNumber: {
     type: Schema.Types.ObjectId,
     ref: "PartNumber",
@@ -42,6 +51,18 @@ const lineItemSchema = new Schema<ILineItemModel>({
   supplier: {
     type: Schema.Types.ObjectId,
     ref: "supplier",
+    required: true,
+  },
+  uom: {
+    type: Schema.Types.ObjectId,
+    ref: "unit_of_measurement",
+    required: true,
+  },
+  priority: {
+    type: String,
+  },
+  currency: {
+    type: String,
     required: true,
   },
   unit_cost: {
@@ -57,6 +78,9 @@ const lineItemSchema = new Schema<ILineItemModel>({
     required: true,
   },
   supplier_readliness_date: {
+    type: Date,
+  },
+  date_required: {
     type: Date,
   },
   exw_date: {

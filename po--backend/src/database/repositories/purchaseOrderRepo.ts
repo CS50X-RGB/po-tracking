@@ -1,9 +1,107 @@
 import { ObjectId } from "mongoose";
-import { PoCreate } from "../../interfaces/poInterface";
+import { PoCreate, PoCreateExcel } from "../../interfaces/poInterface";
 import PurchaseOrderModel from "../models/purchaseOrderModel";
+import ClientRepo from "./clientRepo";
+import SupplierRepo from "./supplierRepo";
+import LineItemRepo from "./liRepo";
+import {
+  LineItemCreate,
+  LineItemCreateExcel,
+} from "../../interfaces/lineItemInterface";
+import PartNumberRepository from "./partNumberRepository";
+import UOMRepo from "./unitOfMeasurementrRepository";
 
 class PurchaseOrderRepo {
-  constructor() {}
+  private clientRepo: ClientRepo;
+  private lineItemRepo: LineItemRepo;
+  private uomRepo: UOMRepo;
+  private supplierRepo: SupplierRepo;
+  private partNumberRepo: PartNumberRepository;
+  constructor() {
+    this.clientRepo = new ClientRepo();
+    this.supplierRepo = new SupplierRepo();
+    this.uomRepo = new UOMRepo();
+    this.lineItemRepo = new LineItemRepo();
+    this.partNumberRepo = new PartNumberRepository();
+  }
+
+  public async createImportEntities(data: PoCreateExcel[]) {
+    try {
+      let count = 0;
+      let po_arr = [];
+      for (const po of data) {
+        const check = await this.checkPurchaseOrderByName(po.po_name);
+        const client: any = await this.clientRepo.getEntity(
+          "Client",
+          po.client,
+        );
+
+        const client_branch: any = await this.clientRepo.getEntity(
+          "Client_Branch",
+          po.client_branch,
+        );
+        const payment_term: any = await this.clientRepo.getEntity(
+          "Payment_Term",
+          po.payment_term,
+        );
+        const freight_term: any = await this.clientRepo.getEntity(
+          "Frieght_Term",
+          po.freight_term,
+        );
+        const part_number: any = await this.partNumberRepo.getPartNumber(
+          po.part_number,
+        );
+        const supplier: any = await this.supplierRepo.getSupplier(po.supplier);
+        const uom: any = await this.uomRepo.findUOMByName(po.uom);
+        let poObject: any;
+        if (check === null) {
+          if (client && client_branch && payment_term && freight_term) {
+            const createPurchase: PoCreate = {
+              name: po.po_name,
+              client: client?._id,
+              client_branch: client_branch?._id,
+              payment_term: payment_term?._id,
+              freight_term: freight_term?._id,
+              order_date: new Date(po.order_date),
+            };
+            poObject = await this.createPurchaseOrder(createPurchase);
+            count++;
+          }
+        } else {
+          poObject = check;
+        }
+
+        const { exw_date, order_date }: any = await this.getExwDate(
+          poObject?._id,
+          new Date(po.date_required),
+        );
+
+        const lineItem: LineItemCreateExcel = {
+          name: po.name,
+          partNumber: part_number?._id,
+          purchaseOrder: poObject?._id,
+          qty: Number(po.qty),
+          exw_date,
+          supplier: supplier?._id,
+          unit_cost: Number(po.unit_price),
+          order_date: new Date(po.order_date),
+          currency: po.currency,
+          date_required: new Date(po.date_required),
+          total_cost: Number(po.unit_price) * Number(po.qty),
+          uom: uom._id,
+          line_item_type: po.line_item_type,
+        };
+        const line_item_create =
+          await this.lineItemRepo.createLineItem(lineItem);
+        po_arr.push(poObject);
+        await this.pushLineItem(poObject?._id, line_item_create._id);
+      }
+      return { po: po_arr, count };
+    } catch (error) {
+      throw new Error(`Error while creating importing excel sheet`);
+    }
+  }
+
   public async createPurchaseOrder(po: PoCreate) {
     try {
       const newPoObject = await PurchaseOrderModel.create(po);
@@ -11,6 +109,17 @@ class PurchaseOrderRepo {
     } catch (error) {
       console.log(error, "error");
       throw new Error(`Error while creating po`);
+    }
+  }
+
+  public async checkPurchaseOrderByName(name: string) {
+    try {
+      const purchaseOrder = await PurchaseOrderModel.findOne({
+        name: name,
+      });
+      return purchaseOrder ? purchaseOrder : null;
+    } catch (error) {
+      throw new Error(`Error while getting checking`);
     }
   }
 
@@ -68,7 +177,7 @@ class PurchaseOrderRepo {
         .populate({
           path: "lineItem",
           populate: {
-            path: "partNumber supplier",
+            path: "partNumber supplier uom",
           },
         });
 

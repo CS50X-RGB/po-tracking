@@ -27,6 +27,7 @@ export const poRoutes = {
   addLineItem: "/po/new/add/li",
   deletePo: "/po/delete",
   singlePo: "/po/single",
+  importPo: "/po/import/all",
 };
 export const masterRoutes = {
   createClient: "/master/create/client",

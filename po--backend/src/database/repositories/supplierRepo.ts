@@ -16,6 +16,17 @@ class SupplierRepo {
       throw new Error(`Error while creatin client`);
     }
   }
+
+  public async getSupplier(name: string) {
+    try {
+      return await Supplier.findOne({
+        name,
+      }).lean();
+    } catch (error) {
+      throw new Error(`Error while getting supplier`);
+    }
+  }
+
   public async getAllSupplier(page: number, offset: number) {
     try {
       const supplier = await Supplier.find()

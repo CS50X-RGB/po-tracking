@@ -78,7 +78,8 @@ export default function ViewPo() {
     console.log(type, e, "Value");
     setLineItem((prev: any) => ({
       ...prev,
-      [type]: type === "date_required" ? new Date(e) : e,
+      [type]:
+        type === "date_required" || type === "order_date" ? new Date(e) : e,
     }));
   };
 
@@ -100,11 +101,19 @@ export default function ViewPo() {
               return (
                 <Card key={index} className="w-1/3 h-full p-10 font-bold">
                   <CardHeader className="flex flex-row gap-4">
-                    Part Number: {d?.partNumber?.name ?? "N/A"}
+                    <Chip className="rounded-full" color="primary">
+                      {d.name}
+                    </Chip>
+                    <h1>Part Number: {d?.partNumber?.name ?? "N/A"}</h1>
                     <Chip color="primary">{d.line_item_status}</Chip>
                   </CardHeader>
                   <CardBody className="flex flex-col items-start">
                     <div className="flex flex-col gap-4">
+                      <p>Currency {d.currency}</p>
+                      <Chip color="warning">
+                        Unit Of Measurement {d.uom.name}
+                      </Chip>
+                      <Chip color="secondary">{d.line_item_type}</Chip>
                       <p className="flex flex-row items-center gap-2">
                         <span>Supplier:</span>
                         <span>{d?.supplier?.name ?? "N/A"}</span>
@@ -118,7 +127,6 @@ export default function ViewPo() {
                           ? new Date(d.exw_date).toLocaleDateString()
                           : "Not Available"}
                       </p>
-                      <p>Line Item Type : {d.line_item_type}</p>
                     </div>
                   </CardBody>
                 </Card>
@@ -142,6 +150,12 @@ export default function ViewPo() {
           onSubmit={() => addLineItem.mutate(linteItem)}
           className="flex flex-col gap-4"
         >
+          <Input
+            label="Name"
+            type="number"
+            onValueChange={(e) => handleSet(e, "name")}
+            value={linteItem.unit_cost}
+          />
           <SearchInput
             label="Part Number"
             api={`${partNumbersRoutes.searchByPart}`}
@@ -163,6 +177,12 @@ export default function ViewPo() {
             value={linteItem.unit_cost}
           />
           <Input
+            label="Currency"
+            type="text"
+            onValueChange={(e) => handleSet(e, "currency")}
+            value={linteItem.currency}
+          />
+          <Input
             label="Quantity"
             type="number"
             onValueChange={(e) => handleSet(e, "qty")}
@@ -179,6 +199,18 @@ export default function ViewPo() {
                 : ""
             }
             onChange={(e) => handleSet(e.target.value, "date_required")}
+            isRequired
+            className="max-w-md"
+          />
+          <Input
+            type="date"
+            label="Order Date"
+            value={
+              linteItem.order_date
+                ? new Date(linteItem.order_date).toISOString().substring(0, 10)
+                : ""
+            }
+            onChange={(e) => handleSet(e.target.value, "order_date")}
             isRequired
             className="max-w-md"
           />
