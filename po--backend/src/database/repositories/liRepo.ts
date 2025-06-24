@@ -1,3 +1,4 @@
+import { String } from "aws-sdk/clients/ssmquicksetup";
 import { LineItemCreate } from "../../interfaces/lineItemInterface";
 import LineItemModel from "../models/lineItemModel";
 
@@ -10,6 +11,31 @@ class LineItemRepo {
       return new_line?.toObject();
     } catch (error: any) {
       throw new Error(`Error while creating the line item: ${error.message}`);
+    }
+  }
+  //accept line item method
+  //SSN and Suplier readiness dater dallin h line item entity jo myjhe
+
+  public async accepteLineItem(
+    id: string,
+    supplier_readiness_date: Date,
+    ssn?: string,
+  ) {
+    try {
+      let filter: any = {
+        supplier_readiness_date,
+      };
+      if (ssn) {
+        filter.ssn = ssn;
+      }
+      const updatedLi = await LineItemModel.findByIdAndUpdate(id, filter, {
+        new: true,
+      });
+
+      return updatedLi;
+    } catch (error) {
+      console.error(error, "Error updating Line Item");
+      throw new Error("Failed to update Line Item");
     }
   }
 }

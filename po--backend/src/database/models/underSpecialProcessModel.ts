@@ -1,60 +1,60 @@
 import mongoose, { Schema } from "mongoose";
 
 export enum underSpecialProcessStatus {
-    OPEN = 'open',
-    INPROGRESS = 'in-progress',
-    PARTIALLY_COMPLETED = 'partially-completed',
-    COMPLETED = 'completed'
+  OPEN = "open",
+  INPROGRESS = "in-progress",
+  PARTIALLY_COMPLETED = "partially-completed",
+  COMPLETED = "completed",
 }
 
 export enum underSpecialProcessType {
-    IN_HOUSE = 'in-house',
-    OUTSOURCED = 'outsourced'
+  IN_HOUSE = "in-house",
+  OUTSOURCED = "outsourced",
 }
 
 export interface IunderSpecialProcess extends Document {
-    type: underSpecialProcessType,
-    completedQuantity: number,
-    pendingQuantity: number,
-    planDate: Date,
-    actualDate: Date,
-    USPstatus: underSpecialProcessStatus,
-    LI:mongoose.Schema.Types.ObjectId
+  type: underSpecialProcessType;
+  completedQuantity: number;
+  pendingQuantity: number;
+  planDate: Date;
+  actualDate: Date;
+  USPstatus: underSpecialProcessStatus;
+  LI: mongoose.Schema.Types.ObjectId;
+}
 
-};
-
-const UnderSpecialProcessSchema = new Schema<IunderSpecialProcess>({
+const UnderSpecialProcessSchema = new Schema<IunderSpecialProcess>(
+  {
     type: {
-        type: String,
-        enum: underSpecialProcessType,
-        default: underSpecialProcessType.IN_HOUSE
+      type: String,
+      enum: underSpecialProcessType,
+      default: underSpecialProcessType.IN_HOUSE,
     },
     completedQuantity: {
-        type: Number,
-        required: true,
+      type: Number,
+      required: true,
     },
     pendingQuantity: {
-        type: Number,
-
+      type: Number,
     },
     planDate: {
-        type: Date,
-        required: true,
+      type: Date,
     },
     actualDate: {
-        type: Date,
-
+      type: Date,
     },
     USPstatus: {
-        type: String,
-        enum: underSpecialProcessStatus
+      type: String,
+      enum: underSpecialProcessStatus,
     },
     LI: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "line_item",
-        required: true,
-    }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "line_item",
+    },
+  },
+  { timestamps: true },
+);
 
-}, { timestamps: true })
-
-export default mongoose.model<IunderSpecialProcess>('underProcess', UnderSpecialProcessSchema);
+export default mongoose.model<IunderSpecialProcess>(
+  "underSpecialProcess",
+  UnderSpecialProcessSchema,
+);
