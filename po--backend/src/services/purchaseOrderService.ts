@@ -5,7 +5,7 @@ import { LineItemCreate } from "../interfaces/lineItemInterface";
 
 class PurchaseOrderService {
   private poRepo: PurchaseOrderRepo;
-  private liRepo : LiRepo;
+  private liRepo: LiRepo;
   constructor() {
     this.poRepo = new PurchaseOrderRepo();
     this.liRepo = new LiRepo();
@@ -24,11 +24,9 @@ class PurchaseOrderService {
     }
   }
 
-  //Repo call to delete the PO by id
   public async deletePOById(req: Request, res: Response) {
     try {
-      //Fetching id form params
-      const id: any = req.params.id
+      const id: any = req.params.id;
 
       if (!id) {
         return res.sendError("Id not found", "Id not found", 404);
@@ -36,24 +34,29 @@ class PurchaseOrderService {
 
       const deletedPO = await this.poRepo.deletePurchaseOrderById(id);
       return res.sendFormatted(deletedPO, "PO deleted successfully", 200);
-
     } catch (error) {
-      return res.sendError(
-        error,
-        "Error while deleteing po",
-        400,
-      );
+      return res.sendError(error, "Error while deleteing po", 400);
     }
-
   }
 
   //Repo call to fetch all the POs
   public async getPO(req: Request, res: Response) {
     try {
-      const POs = await this.poRepo.getAllPO();
-      return res.sendArrayFormatted(POs, "All POs fetched successfully", 200)
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.poRepo.getAllPO(page, offset);
+      return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
-      res.sendError(error, "Error while getting PO", 400)
+      return res.sendError(error, "Error while getting PO", 400);
     }
   }
 
@@ -63,7 +66,7 @@ class PurchaseOrderService {
       const id: any = req.params.id;
 
       if (!id) {
-        return res.sendError("id not found", "id not found", 404)
+        return res.sendError("id not found", "id not found", 404);
       }
 
       const PO = await this.poRepo.getPOByID(id);
@@ -72,28 +75,35 @@ class PurchaseOrderService {
       res.sendError(error, "Error while fetching PO", 400);
     }
   }
+
   public async createLineItem(req: Request, res: Response) {
     try {
       const poId = req.params.poId;
 
       const li: any = req.body;
-      const exw_date = await this.poRepo.getExwDate(poId, li.date_required);
+
+      const { exw_date, order_date } = await this.poRepo.getExwDate(
+        poId,
+        li.date_required,
+      );
 
       const object: LineItemCreate = {
         ...li,
         purchaseOrder: poId,
+        order_date,
         total_cost: li.qty * li.unit_cost,
         exw_date,
       };
 
-      const createLinteItem = await this.liRepo.createLineItem(object);
-
-      return res.sendFormatted(createLinteItem, "Line Item Added", 200);
+      const createLineItem = await this.liRepo.createLineItem(object);
+      if (createLineItem) {
+        await this.poRepo.pushLineItem(poId, createLineItem._id);
+      }
+      return res.sendFormatted(createLineItem, "Line Item Added", 200);
     } catch (error) {
       return res.sendError(error, "Error while creating line item", 400);
     }
   }
-
 }
 
 export default PurchaseOrderService;

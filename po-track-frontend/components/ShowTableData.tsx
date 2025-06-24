@@ -18,7 +18,11 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import Delete from "@/public/Icons/Delete";
 import { deleteData, putData } from "@/core/api/apiHandler";
-import { accountRoutes, partNumbersRoutes } from "@/core/api/apiRoutes";
+import {
+  accountRoutes,
+  partNumbersRoutes,
+  poRoutes,
+} from "@/core/api/apiRoutes";
 import { queryClient } from "@/app/providers";
 
 import { toast } from "sonner";
@@ -63,6 +67,22 @@ export default function ShowTableData({
       toast.error("Error caused while deleting user");
     },
   });
+  const deleteByIdPo = useMutation({
+    mutationKey: ["deletePobyId"],
+    mutationFn: async (id: any) => {
+      return await deleteData(`${poRoutes.deletePo}/${id}`, {});
+    },
+    onSuccess: (data: any) => {
+      console.log(data.data);
+      toast.success("Po Deleted Successfully");
+      queryClient.invalidateQueries();
+    },
+    onError: (error: any) => {
+      console.error(error);
+      toast.error("Error caused while deleting po");
+    },
+  });
+
   const router = useRouter();
   const deleteByPartNumberId = useMutation({
     mutationKey: ["deletebyPartNumberId"],
@@ -136,6 +156,8 @@ export default function ShowTableData({
   };
   const getValue = (item: any, columnKey: any): React.ReactNode => {
     switch (columnKey) {
+      case "Purchase Order Name":
+        return <p>{item.name}</p>;
       case "role":
         return (
           <Chip color={roleColors[item.role.name] || "default"}>
@@ -149,6 +171,10 @@ export default function ShowTableData({
             onClick={() => deleteByPartNumberId.mutate(item._id)}
           />
         );
+      case "Freight Terms":
+        return <p>{item.freight_term.name}</p>;
+      case "Payment Terms":
+        return <p>{item.payment_term.name}</p>;
       case "Sub Client Name":
       case "Supplier Name":
         return <p>{item.name}</p>;
@@ -216,6 +242,25 @@ export default function ShowTableData({
             {item.status}
           </Chip>
         );
+      case "Order Date":
+        return <p>{new Date(item.order_date).toLocaleDateString()}</p>;
+      case "Purchase Action":
+        return (
+          <div className="flex flex-row items-center gap-4">
+            <EyeIcon
+              onClick={() => router.push(`/admin/po/view/${item._id}`)}
+              className="size-4"
+            />
+            <Delete
+              className={"size-4 fill-red-300 cursor-pointer"}
+              onClick={() => deleteByIdPo.mutate(item._id)}
+            />
+          </div>
+        );
+      case "Client":
+        return <p>{item.client.name}</p>;
+      case "Client Branch Name":
+        return <p>{item.client_branch.name}</p>;
       case "Client Address":
       case "Supplier Address":
         return <p>{item.address}</p>;
@@ -250,7 +295,9 @@ export default function ShowTableData({
         <TableHeader columns={columnHeaders}>
           {(column) => (
             <TableColumn key={column.name}>
-              {column.name === "Bom_Action" || column.name === "Client Action"
+              {column.name === "Bom_Action" ||
+              column.name === "Client Action" ||
+              column.name === "Purchase Action"
                 ? "Actions"
                 : column.name}
             </TableColumn>

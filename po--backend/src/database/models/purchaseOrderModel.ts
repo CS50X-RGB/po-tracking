@@ -6,6 +6,7 @@ export interface IPo extends Document {
   client_branch: mongoose.Types.ObjectId;
   freight_term: mongoose.Types.ObjectId;
   payment_term: mongoose.Types.ObjectId;
+  lineItem: mongoose.Types.ObjectId[];
   order_date: Date;
 }
 
@@ -27,9 +28,15 @@ const PoSchema: Schema = new Schema<IPo>(
     },
     freight_term: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "frieght_terms",
+      ref: "fright_terms",
       required: true,
     },
+    lineItem: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "line_item",
+      },
+    ],
     payment_term: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "payment_terms",

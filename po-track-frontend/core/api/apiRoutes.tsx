@@ -23,6 +23,10 @@ export const partNumbersRoutes = {
 };
 export const poRoutes = {
   createPo: "/po/new/create",
+  viewPo: "/po/all/",
+  addLineItem: "/po/new/add/li",
+  deletePo: "/po/delete",
+  singlePo: "/po/single",
 };
 export const masterRoutes = {
   createClient: "/master/create/client",
