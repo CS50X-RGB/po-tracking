@@ -30,6 +30,7 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
     LI: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "line_item",
+      required: true,
     },
   },
   { timestamps: true },
