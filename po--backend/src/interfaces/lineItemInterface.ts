@@ -18,6 +18,7 @@ export interface LineItemCreate {
 
 export interface LineItemCreateExcel {
   name: string;
+  priority: string;
   partNumber: any;
   supplier: any;
   unit_cost: number;

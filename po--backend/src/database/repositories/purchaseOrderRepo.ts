@@ -81,6 +81,7 @@ class PurchaseOrderRepo {
           partNumber: part_number?._id,
           purchaseOrder: poObject?._id,
           qty: Number(po.qty),
+          priority: po.priority,
           exw_date,
           supplier: supplier?._id,
           unit_cost: Number(po.unit_price),
