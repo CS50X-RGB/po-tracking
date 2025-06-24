@@ -69,20 +69,30 @@ class ProgressUpdateService {
       if (errors.length > 0) {
         return res.sendError(errors, "Validation failed", 400);
       }
-
-      const created = await this.progressUpdateRepo.createRawMaterial({
+      const rm_obj = {
         source,
         RMstatus,
         planDate,
         inStock,
         received,
         actualDate,
-      });
-
-      //Update ProgressUpdate to link this RawMaterial
-      await progressUpdateModel.findByIdAndUpdate(progressUpdateId, {
-        rawMaterial: created._id,
-      });
+      };
+      const rm_id: any = await this.progressUpdateRepo.checkEntity(
+        progressUpdateId,
+        "RM",
+      );
+      let created;
+      if (rm_id) {
+        created = await this.progressUpdateRepo.updateRawMaterial(
+          rm_id,
+          rm_obj,
+        );
+      } else {
+        created = await this.progressUpdateRepo.createRawMaterial(
+          progressUpdateId,
+          rm_obj,
+        );
+      }
 
       return res.sendFormatted(
         created,

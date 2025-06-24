@@ -1,9 +1,13 @@
 import { String } from "aws-sdk/clients/ssmquicksetup";
 import { LineItemCreate } from "../../interfaces/lineItemInterface";
 import LineItemModel from "../models/lineItemModel";
+import ProgressUpdateRepo from "./progressUpdateRepo";
 
 class LineItemRepo {
-  constructor() {}
+  private progresUpdateRepo: ProgressUpdateRepo;
+  constructor() {
+    this.progresUpdateRepo = new ProgressUpdateRepo();
+  }
 
   public async createLineItem(lineItem: LineItemCreate) {
     try {
@@ -31,6 +35,7 @@ class LineItemRepo {
       const updatedLi = await LineItemModel.findByIdAndUpdate(id, filter, {
         new: true,
       });
+      // Create Progress Update Entity by line item id
 
       return updatedLi;
     } catch (error) {

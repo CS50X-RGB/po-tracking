@@ -104,6 +104,7 @@ export default function ViewPo() {
                     <Chip className="rounded-full" color="primary">
                       {d.name}
                     </Chip>
+                    <Chip color="warning">{d.priority}</Chip>
                     <h1>Part Number: {d?.partNumber?.name ?? "N/A"}</h1>
                     <Chip color="primary">{d.line_item_status}</Chip>
                   </CardHeader>
