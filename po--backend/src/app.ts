@@ -75,6 +75,10 @@ const permissions: PermissionCreate[] = [
     name: "Create Master Data",
     link: "/admin/master",
   },
+  {
+    name: "Accept Purchase Order",
+    link: "/supplier/accept",
+  },
 ];
 
 const paymentTerms: RoleInterface[] = [
