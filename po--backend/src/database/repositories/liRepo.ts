@@ -11,10 +11,26 @@ class LineItemRepo {
 
   public async createLineItem(lineItem: LineItemCreate) {
     try {
+      console.log(lineItem, "Line Item");
       const new_line = await LineItemModel.create(lineItem);
       return new_line?.toObject();
     } catch (error: any) {
+      console.log(error, "Error");
       throw new Error(`Error while creating the line item: ${error.message}`);
+    }
+  }
+  public async getNonAcceptedLineItem(poId: any, supplierId: any) {
+    try {
+      const allLineItems = await LineItemModel.find({
+        purchaseOrder: poId,
+        supplier: supplierId,
+        supplier_readliness_date: { $in: [null, undefined] },
+      })
+        .populate("uom partNumber")
+        .lean();
+      return allLineItems;
+    } catch (error) {
+      throw new Error(`Error while getting All line Items`);
     }
   }
 

@@ -19,34 +19,15 @@ class UserMiddleware {
       const roleObj = await RoleModel.findById(role).lean();
 
       // If role is ADMIN, client and supplier must not be present
-      if (roleObj && roleObj.name === "ADMIN") {
-        if (client || supplier) {
-          return res.sendError(
-            null,
-            "ADMIN users must not be assigned a client or supplier",
-            400,
-          );
-        }
-      } else {
+      if (roleObj && roleObj.name !== "ADMIN") {
         // For non-admin roles, client and supplier are required
-        if (!client || !supplier) {
+        if (!client && !supplier) {
           return res.sendError(
             null,
             "Client and Supplier are required for non-ADMIN users",
             400,
           );
         }
-
-        const clientObj = await Client.findOne({ name: client }).lean();
-        const supplierObj = await Supplier.findOne({ name: supplier }).lean();
-
-        if (!clientObj || !supplierObj) {
-          return res.sendError(null, "Invalid client or supplier", 400);
-        }
-
-        // Attach to request
-        req.body.client = clientObj;
-        req.body.supplier = supplierObj;
       }
 
       next();
@@ -89,6 +70,8 @@ class UserMiddleware {
         req.user = {
           _id: decoded._id,
           name: decoded.name,
+          client: decoded.client,
+          supplier: decoded.supplier,
         };
         next();
       } else {

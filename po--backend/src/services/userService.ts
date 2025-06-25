@@ -9,6 +9,7 @@ import {
 } from "../interfaces/userInterface";
 import { createToken, hashPassword, isMatch } from "../helpers/encrypt";
 import { Response, Request } from "express";
+import supplier from "../database/models/supplier";
 
 class UserService {
   private userRepository: UserRepository;
@@ -58,12 +59,17 @@ class UserService {
         if (!matchPassword) {
           return res.sendError(null, "Wrong password", 400);
         }
-        const accessToken = createToken({
+        const obj: any = {
           _id: userDetails._id,
           role: userDetails.role.name,
           name: userDetails.name,
           email: userDetails.email,
-        });
+        };
+        if (userDetails.role.name !== "ADMIN") {
+          obj.client = userDetails.client._id;
+          obj.supplier = userDetails.supplier._id;
+        }
+        const accessToken = createToken(obj);
         const userResponse = {
           name: userDetails.name,
           email: userDetails.email,
@@ -71,6 +77,8 @@ class UserService {
           role: userDetails.role.name,
           token: accessToken,
           permissions: userDetails.role.permissions,
+          client: userDetails.client,
+          supplier: userDetails.supplier,
         };
         return res.sendFormatted(userResponse, "User Details", 200);
       }
@@ -193,6 +201,7 @@ class UserService {
         if (user.supplier) {
           userObj.supplier = user.supplier;
         }
+        console.log(req.body, "Body");
         const newUser = await this.userRepository.createUser(userObj);
         return res.sendFormatted(newUser, "User Created", 200);
       } else {

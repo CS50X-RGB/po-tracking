@@ -1,6 +1,16 @@
 "use client";
-import React, { useState,useEffect } from "react";
-import { Tabs, Tab, Input, Link, Button, Card, CardBody, Autocomplete, AutocompleteItem } from "@heroui/react";
+import React, { useState, useEffect } from "react";
+import {
+  Tabs,
+  Tab,
+  Input,
+  Link,
+  Button,
+  Card,
+  CardBody,
+  Autocomplete,
+  AutocompleteItem,
+} from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { currentUser } from "@/core/api/localStorageKeys";
@@ -20,20 +30,20 @@ export default function App() {
     name: "",
     email: "",
     password: "",
-    role: ""
+    role: "",
   });
   useEffect(() => {
     const role = localStorage.getItem("ROLE");
     const token = localStorage.getItem(currentUser);
-    if(token){
+    if (token) {
       if (role === "ADMIN") {
         console.log(role, "Role");
         router.replace("/admin");
-      } else {
-        router.replace("/user");
+      } else if (role === "SUPPLIER") {
+        router.replace("/supplier");
       }
     }
-  },[]);
+  }, []);
   const router = useRouter();
   const signupMutate = useMutation({
     mutationKey: ["signinMutate"],
@@ -45,9 +55,9 @@ export default function App() {
       localStorage.setItem(currentUser, JSON.stringify(data.data.data));
       Cookies.set(currentUser, data.data.data.user.token);
       setisLoadingLogin(false);
-      toast.success('Signed Up Successfully', {
+      toast.success("Signed Up Successfully", {
         position: "top-right",
-        className: "bg-blue-400"
+        className: "bg-blue-400",
       });
       const { role } = data.data.data.user;
       router.push("/user");
@@ -55,15 +65,15 @@ export default function App() {
         name: "",
         email: "",
         role: "",
-        password: ""
+        password: "",
       });
     },
     onError: (error: any) => {
       console.error(error);
       setisLoadingLogin(false);
-      toast.error('Logged In Error', {
+      toast.error("Logged In Error", {
         position: "top-right",
-        className: "bg-red-400"
+        className: "bg-red-400",
       });
     },
   });
@@ -79,62 +89,61 @@ export default function App() {
         setisLoadingLogin(false);
         return;
       }
-      console.log(data.data.data,"data");
+      console.log(data.data.data, "data");
       localStorage.setItem(currentUser, JSON.stringify(data.data.data));
-      Cookies.set("nextToken",data.data.data.token);
-        const permissions: any[] = [];
-           if (data.data.data.permissions && data.data.data.permissions) {
-                data?.data?.data?.permissions.map((p: any) => {
-                    const obj = {
-                        name: p.name,
-                        link: p.link
-                    }
-                    permissions.push(obj);
-                });
-                let adminNav = {};
-                if(data.data.data.role === "ADMIN"){
-                   adminNav = {
-                      name: "Permissions",
-                      link: "/admin/permissions"
-                  }
-                }else{
-                    adminNav = {
-                      name: "Update User",
-                      link: "/user/update"
-                  }
-                  permissions.push({
-                        name : "User Dashboard",
-                        link : "/user"
-                  })
-                }
-                permissions.push(adminNav);
-                const links = permissions.map((p) => p.link);
-                Cookies.set("allowedLinks", JSON.stringify(links), { path: "/" });
-           }
+      Cookies.set("nextToken", data.data.data.token);
+      const permissions: any[] = [];
+      if (data.data.data.permissions && data.data.data.permissions) {
+        data?.data?.data?.permissions.map((p: any) => {
+          const obj = {
+            name: p.name,
+            link: p.link,
+          };
+          permissions.push(obj);
+        });
+        let adminNav = {};
+        if (data.data.data.role === "ADMIN") {
+          adminNav = {
+            name: "Permissions",
+            link: "/admin/permissions",
+          };
+        } else {
+          adminNav = {
+            name: "Update User",
+            link: "/user/update",
+          };
+          permissions.push({
+            name: "User Dashboard",
+            link: "/user",
+          });
+        }
+        permissions.push(adminNav);
+        const links = permissions.map((p) => p.link);
+        Cookies.set("allowedLinks", JSON.stringify(links), { path: "/" });
+      }
       Cookies.set(currentUser, data.data.data.token);
       setisLoadingLogin(false);
-      toast.success('Logged In Successfully', {
+      toast.success("Logged In Successfully", {
         position: "top-right",
-        className: "bg-blue-400"
+        className: "bg-blue-400",
       });
       const { role } = data.data.data;
-      localStorage.setItem("ROLE",role);
+      localStorage.setItem("ROLE", role);
       Cookies.set("userRole", role);
-      
+
       if (role === "ADMIN") {
         console.log(role, "Role");
         router.push(permissions[0].link);
       } else {
         router.push("/user");
       }
-      
     },
     onError: (error: any) => {
       console.error(error);
       setisLoadingLogin(false);
-      toast.error('Logged In Error', {
+      toast.error("Logged In Error", {
         position: "top-right",
-        className: "bg-red-400"
+        className: "bg-red-400",
       });
     },
   });
@@ -156,17 +165,20 @@ export default function App() {
     e.preventDefault();
     setisLoadingLogin(true);
     signupMutate.mutate(signinState);
-  }
+  };
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setisLoadingLogin(true);
     console.log("Inside form Submit");
     loginMutate.mutate(loginState);
-  }
+  };
   const [selected, setSelected] = useState<any>("login");
   let list = useAsyncList({
     async load({ filterText }) {
-      let res = await fetch(`${localBackend}role/all/roles/?search=${filterText}`, {});
+      let res = await fetch(
+        `${localBackend}role/all/roles/?search=${filterText}`,
+        {},
+      );
       console.log(res, "RES");
       let json = await res.json();
       return {
@@ -215,14 +227,22 @@ export default function App() {
                   </Link>
                 </p>
                 <div className="flex gap-2 justify-end">
-                  <Button type="submit" fullWidth color="primary" isLoading={isLoadingLogin}>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    color="primary"
+                    isLoading={isLoadingLogin}
+                  >
                     Login
                   </Button>
                 </div>
               </form>
             </Tab>
             <Tab key="sign-up" title="Sign up">
-              <form onSubmit={(e) => handleSigin(e)} className="flex flex-col gap-4 h-[300px]">
+              <form
+                onSubmit={(e) => handleSigin(e)}
+                className="flex flex-col gap-4 h-[300px]"
+              >
                 <Input
                   isRequired
                   label="Name"
@@ -272,7 +292,12 @@ export default function App() {
                   </Link>
                 </p>
                 <div className="flex gap-2 justify-end">
-                  <Button isLoading={isLoadingLogin} type="submit" fullWidth color="primary">
+                  <Button
+                    isLoading={isLoadingLogin}
+                    type="submit"
+                    fullWidth
+                    color="primary"
+                  >
                     Sign up
                   </Button>
                 </div>
@@ -284,4 +309,3 @@ export default function App() {
     </div>
   );
 }
-

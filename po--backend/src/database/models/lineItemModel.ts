@@ -60,6 +60,7 @@ const lineItemSchema = new Schema<ILineItemModel>({
   },
   priority: {
     type: String,
+    default: "High",
   },
   currency: {
     type: String,

@@ -7,6 +7,7 @@ export const accountRoutes = {
   getMineProfile: "/user/my/user",
   deleteById: "/user/remove",
   updateUser: "/user/update/",
+  createUser: "/user/create",
   allUsers: "/user/all-users",
 };
 export const rolesRoutes = {
@@ -28,11 +29,17 @@ export const poRoutes = {
   deletePo: "/po/delete",
   singlePo: "/po/single",
   importPo: "/po/import/all",
+
+  //not-accepted
+  notAccepted: "/po/non-accepted/",
+  notAcceptedLi: "/po/li/not-accepted/",
+  //AcceptedLi
+  acceptedLi: "/po/li/accept/",
 };
 export const masterRoutes = {
   createClient: "/master/create/client",
   createSubClients: "/master/create/client_branch",
-  getClient: "/master/client/",
+  getClient: "/master/get/clients/",
   getSubClient: "/master/client/clientId",
   // search
   getPaymentTerms: "/master/get/entity/",

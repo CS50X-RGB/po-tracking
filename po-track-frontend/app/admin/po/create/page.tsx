@@ -6,6 +6,7 @@ import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function PoCreate() {
   const [po, setPo] = useState<any>({
@@ -22,10 +23,11 @@ export default function PoCreate() {
       [key]: key === "order_date" ? new Date(e) : e,
     }));
   };
-
+  const router = useRouter();
   const newPo = useMutation({
     mutationKey: ["new_po"],
     mutationFn: (data: any) => {
+      console.log(data, "data");
       return postData(
         poRoutes.createPo,
         {},
@@ -39,6 +41,7 @@ export default function PoCreate() {
       toast.success("Purchase Order Added", {
         position: "top-left",
       });
+      router.push("/admin/po/view");
     },
     onError: (error: any) => {
       console.log(error);
@@ -54,7 +57,10 @@ export default function PoCreate() {
         </CardHeader>
         <CardBody className="flex flex-col gap-4 p-4">
           <form
-            onSubmit={() => newPo.mutate(po)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              newPo.mutate(po);
+            }}
             className="flex flex-col items-center gap-4 w-[80vh] flex-wrap"
           >
             <Input

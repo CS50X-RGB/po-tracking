@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { Types, ObjectId } from "mongoose";
 import { PoCreate, PoCreateExcel } from "../../interfaces/poInterface";
 import PurchaseOrderModel from "../models/purchaseOrderModel";
 import ClientRepo from "./clientRepo";
@@ -213,6 +213,50 @@ class PurchaseOrderRepo {
       };
     } catch (error: any) {
       throw new Error(`Error while calculating EXW date: ${error.message}`);
+    }
+  }
+
+  public async getNonAcceptedPo(supplierId: any) {
+    try {
+      const pos = await PurchaseOrderModel.aggregate([
+        {
+          $lookup: {
+            from: "line_items",
+            localField: "lineItem",
+            foreignField: "_id",
+            as: "lineItems",
+          },
+        },
+        {
+          $match: {
+            lineItems: {
+              $elemMatch: {
+                supplier: new Types.ObjectId(supplierId),
+                supplier_readliness_date: { $in: [null, undefined] },
+              },
+            },
+          },
+        },
+      ]);
+      const finalObjs = await Promise.all(
+        pos.map((po: any) =>
+          PurchaseOrderModel.findById(po._id)
+            .populate("client")
+            .populate("client_branch")
+            .populate("freight_term")
+            .populate("payment_term")
+            .populate({
+              path: "lineItem",
+              populate: { path: "uom" },
+            })
+            .lean(),
+        ),
+      );
+
+      return finalObjs;
+    } catch (error) {
+      console.error("Error fetching non-accepted POs:", error);
+      throw new Error("Failed to fetch non-accepted purchase orders.");
     }
   }
 }

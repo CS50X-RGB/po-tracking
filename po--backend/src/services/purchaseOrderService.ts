@@ -76,6 +76,63 @@ class PurchaseOrderService {
     }
   }
 
+  public async getNonAcceptedPoLi(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError("Error while no user", "No Token", 400);
+      }
+      const { _id, name, client, supplier } = req.user;
+      const poId = req.params.poId;
+      const lineItems = await this.liRepo.getNonAcceptedLineItem(
+        poId,
+        supplier,
+      );
+      return res.sendArrayFormatted(lineItems, "Fetched Line Items", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while getting error",
+        "Line Items not getting correctly",
+        400,
+      );
+    }
+  }
+  public async getNonAcceptedLi(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError("Error while no user", "No Token", 400);
+      }
+      const { _id, name, client, supplier } = req.user;
+
+      const purchaseOrder = await this.poRepo.getNonAcceptedPo(supplier);
+
+      return res.sendArrayFormatted(
+        purchaseOrder,
+        "Fetched All Purchase Orders",
+        200,
+      );
+    } catch (error) {
+      return res.sendError("Cant Send Po", "Error while getting pos", 400);
+    }
+  }
+
+  public async acceptLineItem(req: Request, res: Response) {
+    try {
+      const lineItem = req.params.lineItem;
+      const { ssn, supplier_readliness_date }: any = req.body;
+      const acceptLineItem = await this.liRepo.accepteLineItem(
+        ssn,
+        supplier_readliness_date,
+      );
+      return res.sendFormatted(acceptLineItem, "Line Item Accepted", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while accepting line item",
+        "Error while accepting line item",
+        400,
+      );
+    }
+  }
+
   public async createLineItem(req: Request, res: Response) {
     try {
       const poId = req.params.poId;
@@ -86,7 +143,6 @@ class PurchaseOrderService {
         poId,
         li.date_required,
       );
-
       const object: LineItemCreate = {
         ...li,
         purchaseOrder: poId,

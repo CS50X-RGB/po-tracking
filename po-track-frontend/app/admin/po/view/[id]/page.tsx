@@ -4,6 +4,7 @@ import {
   masterRoutes,
   partNumbersRoutes,
   poRoutes,
+  uomRoutes,
 } from "@/core/api/apiRoutes";
 import { Query, useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
@@ -148,14 +149,17 @@ export default function ViewPo() {
         }
       >
         <form
-          onSubmit={() => addLineItem.mutate(linteItem)}
+          onSubmit={(e) => {
+            e.preventDefault();
+            addLineItem.mutate(linteItem);
+          }}
           className="flex flex-col gap-4"
         >
           <Input
             label="Name"
-            type="number"
+            type="text"
             onValueChange={(e) => handleSet(e, "name")}
-            value={linteItem.unit_cost}
+            value={linteItem.name}
           />
           <SearchInput
             label="Part Number"
@@ -169,6 +173,13 @@ export default function ViewPo() {
             api={`${masterRoutes.getSupplier}`}
             type="supplier"
             state={linteItem.supplier}
+            setState={handleSet}
+          />
+          <SearchInput
+            label="Unit Of Meaurement"
+            api={uomRoutes.getAllUom}
+            type="uom"
+            state={linteItem.uom}
             setState={handleSet}
           />
           <Input
