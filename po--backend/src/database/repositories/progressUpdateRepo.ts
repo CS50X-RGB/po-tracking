@@ -4,36 +4,10 @@ import underSpecialProcessModel from "../models/underSpecialProcessModel";
 import finalInspection from "../models/finalInspection";
 import { rawMaterialInterface } from "../../interfaces/rawMaterialInterface";
 import ProgressUpdateModel from "../models/progressUpdateModel";
+import { underProcessInterface } from "../../interfaces/underProcessInterface";
 
 class ProgressUpdateRepo {
   constructor() {}
-  //function to create a progress upate entiry for a line item
-  public async createProgressUpdate(data: { LI: string }) {
-    try {
-      return await ProgressUpdateModel.create(data);
-    } catch (error) {
-      console.error(error, "Error creating ProgressUpdate");
-      throw new Error("Failed to create ProgressUpdate");
-    }
-  }
-
-  //RAW mateial progress update
-  public async createRawMaterial(
-    id: any,
-    rawMaterialData: rawMaterialInterface,
-  ) {
-    try {
-      const rawMaterialObj = await rawMaterial.create(rawMaterialData);
-      //Update ProgressUpdate to link this RawMaterial
-      await ProgressUpdateModel.findByIdAndUpdate(id, {
-        rawMaterial: rawMaterialObj._id,
-      });
-      return rawMaterialObj?.toObject();
-    } catch (error) {
-      console.log(error, "error");
-      throw new Error(`Error while creating raw material`);
-    }
-  }
 
   public async checkEntity(
     progressUpdateId: any,
@@ -64,6 +38,34 @@ class ProgressUpdateRepo {
     }
   }
 
+  // Create Progress Update Entity By Line Item Id
+  public async createProgressUpdate(data: { LI: string }) {
+    try {
+      return await ProgressUpdateModel.create(data);
+    } catch (error) {
+      console.error(error, "Error creating ProgressUpdate");
+      throw new Error("Failed to create ProgressUpdate");
+    }
+  }
+
+  //Create RAW mateial progress update
+  public async createRawMaterial(
+    id: any,
+    rawMaterialData: rawMaterialInterface,
+  ) {
+    try {
+      const rawMaterialObj = await rawMaterial.create(rawMaterialData);
+      //Update ProgressUpdate to link this RawMaterial
+      await ProgressUpdateModel.findByIdAndUpdate(id, {
+        rawMaterial: rawMaterialObj._id,
+      });
+      return rawMaterialObj?.toObject();
+    } catch (error) {
+      console.log(error, "error");
+      throw new Error(`Error while creating raw material`);
+    }
+  }
+  //Update RAW mateial progress update
   public async updateRawMaterial(
     rawMaterialId: string,
     data: Partial<rawMaterialInterface>,
@@ -77,22 +79,39 @@ class ProgressUpdateRepo {
       throw new Error("Failed to update Raw Material");
     }
   }
-  // Create Progress Update Entity By Line Item Id
-  public async createProgressUpdateLineItem() {}
-  public async getRawMaterial() {}
-  public async deleteRawMaterial() {}
 
-  //Under Process progress update
-  public async createUnderProcess() {}
-  public async getUnderProcess() {}
-  public async updateUnderProcess() {}
-  public async deleteUnderProcess() {}
+  //Create underProcess progress update
+  public async createUnderProcess(
+    id: any,
+    underProcessData: underProcessInterface,
+  ) {
+    try {
+      const underProcessObj = await underProcessModel.create(underProcessData);
+      //Update ProgressUpdate to link this underProcess
+      await ProgressUpdateModel.findByIdAndUpdate(id, {
+        underProcess: underProcessObj._id,
+      });
+      return underProcessObj?.toObject();
+    } catch (error) {
+      console.log(error, "error");
+      throw new Error(`Error while creating under Process Object`);
+    }
+  }
 
-  //under special process  progress update
-  public async createUnderSpecialProcess() {}
-  public async getUnderSpecialProcess() {}
-  public async updateUnderSpecialProcess() {}
-  public async deleteUnderSpecialProcess() {}
+  //Update underProcess progress update
+  public async updateUnderProcess(
+    underProcessId: string,
+    data: Partial<underProcessInterface>,
+  ) {
+    try {
+      return await underProcessModel.findByIdAndUpdate(underProcessId, data, {
+        new: true,
+      });
+    } catch (error) {
+      console.error(error, "Error updating underProcess");
+      throw new Error("Failed to update underProcess");
+    }
+  }
 }
 
 export default ProgressUpdateRepo;

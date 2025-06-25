@@ -10,10 +10,15 @@ router.post(
   progressUpdateservice.createRawMaterial.bind(progressUpdateservice),
 );
 
-router.patch(
-  "/rawMaterial/update/:rawMaterialId",
-  progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),
+router.post(
+  "/underProcess/create/:progressUpdateId",
+  progressUpdateservice.createProgressUpdate.bind(progressUpdateservice),
 );
+
+// router.patch(
+//   "/rawMaterial/update/:rawMaterialId",
+//   progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),
+// );
 
 router.get("/test", (req, res) => {
   res.send("Progress Update API is working");
