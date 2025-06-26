@@ -12,7 +12,7 @@ export default function PurchaseNotAccepted({ po }: any) {
       key={po._id}
       className="p-4 rounded-xl shadow-xl"
     >
-      <h2 className="text-xl font-bold">{po.name}</h2>
+      <h2 className="text-xl text-start font-bold">{po.name}</h2>
       <CardBody className="flex flex-col gap-4">
         <Chip className="bg-red-700">
           {po.lineItem?.length ?? 0} Line Items Not Accepted

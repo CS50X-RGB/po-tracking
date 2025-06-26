@@ -231,6 +231,7 @@ class PurchaseOrderRepo {
           $match: {
             lineItems: {
               $elemMatch: {
+                supplier: new Types.ObjectId(supplierId),
                 supplier_readliness_date: { $in: [null, undefined] },
               },
             },
@@ -238,18 +239,30 @@ class PurchaseOrderRepo {
         },
       ]);
       const finalObjs = await Promise.all(
-        pos.map((po: any) =>
-          PurchaseOrderModel.findById(po._id)
+        pos.map(async (po: any) => {
+          const fullPo = await PurchaseOrderModel.findById(po._id)
             .populate("client")
             .populate("client_branch")
             .populate("freight_term")
             .populate("payment_term")
             .populate({
               path: "lineItem",
-              populate: { path: "uom" },
+              populate: [{ path: "supplier" }, { path: "uom" }],
             })
-            .lean(),
-        ),
+            .lean();
+
+          if (fullPo != null) {
+            fullPo.lineItem = fullPo.lineItem.filter((li: any) => {
+              return (
+                li.supplier_readliness_date === null ||
+                li.supplier_readliness_date === undefined
+              );
+            });
+            return fullPo;
+          } else {
+            return null;
+          }
+        }),
       );
 
       return finalObjs;

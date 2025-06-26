@@ -102,7 +102,6 @@ class PurchaseOrderService {
         return res.sendError("Error while no user", "No Token", 400);
       }
       const { _id, name, client, supplier } = req.user;
-      console.log(supplier);
       const purchaseOrder = await this.poRepo.getNonAcceptedPo(supplier);
 
       return res.sendArrayFormatted(

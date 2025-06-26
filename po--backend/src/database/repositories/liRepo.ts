@@ -24,7 +24,7 @@ class LineItemRepo {
     try {
       const allLineItems = await LineItemModel.find({
         purchaseOrder: poId,
-        // supplier: supplierId,
+        supplier: supplierId,
         supplier_readliness_date: { $in: [null, undefined] },
       })
         .populate("uom partNumber")

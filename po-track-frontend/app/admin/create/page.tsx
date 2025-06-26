@@ -78,6 +78,8 @@ export default function CreateFom() {
     createUser.mutate(user);
   };
 
+  console.log(user, "user");
+
   return (
     <div className="flex flex-col justify-center h-[60vh] items-center">
       <Card className="w-full max-w-md">
