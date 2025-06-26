@@ -10,9 +10,17 @@ class ProgressUpdateRepo {
   constructor() {}
 
   //function to create a progress upate entiry for a line item
-  public async createProgressUpdate(data: { LI: string; supplier: any }) {
+  public async createProgressUpdate(data: {
+    LI: string;
+    supplier: any;
+    qty: any;
+  }) {
     try {
-      return await ProgressUpdateModel.create(data);
+      const newObj: any = {
+        ...data,
+        openqty: data.qty,
+      };
+      return await ProgressUpdateModel.create(newObj);
     } catch (error) {
       console.error(error, "Error creating ProgressUpdate");
       throw new Error("Failed to create ProgressUpdate");

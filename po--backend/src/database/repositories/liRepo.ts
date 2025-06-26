@@ -11,7 +11,6 @@ class LineItemRepo {
 
   public async createLineItem(lineItem: LineItemCreate) {
     try {
-      console.log(lineItem, "Line Item");
       const new_line = await LineItemModel.create(lineItem);
       return new_line?.toObject();
     } catch (error: any) {
@@ -48,10 +47,10 @@ class LineItemRepo {
       if (ssn) {
         filter.ssn = ssn;
       }
-      const updatedLi = await LineItemModel.findByIdAndUpdate(id, filter, {
+      const updatedLi: any = await LineItemModel.findByIdAndUpdate(id, filter, {
         new: true,
       }).lean();
-
+      console.log(updatedLi, "Line item");
       if (!updatedLi) {
         throw new Error(`Line Item with ID ${id} not found`);
       }
@@ -59,6 +58,7 @@ class LineItemRepo {
       const progressUpdate = await this.progresUpdateRepo.createProgressUpdate({
         LI: id,
         supplier,
+        qty: updatedLi.qty,
       });
 
       return updatedLi;
