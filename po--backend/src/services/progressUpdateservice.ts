@@ -9,6 +9,8 @@ import {
 import { String } from "aws-sdk/clients/pcs";
 import progressUpdateModel from "../database/models/progressUpdateModel";
 import { underProcessStatus } from "../database/models/underProcessModel";
+import { underSpecialProcessStatus } from "../database/models/underSpecialProcessModel";
+import { isQualityCheckCompletedEnum } from "../database/models/finalInspection";
 
 class ProgressUpdateService {
   private progressUpdateRepo: ProgressUpdateRepo;
@@ -25,6 +27,15 @@ class ProgressUpdateService {
         req.body;
 
       const errors: String[] = [];
+
+      //getting qunatity info
+      const qtyInfo =
+        await this.progressUpdateRepo.getQtyInfo(progressUpdateId);
+      if (!qtyInfo) {
+        return res.sendError("Progress update not found", "Not Found", 404);
+      }
+
+      const { openqty, qty } = qtyInfo;
 
       //if status is open and source is imported
       if (
@@ -54,6 +65,10 @@ class ProgressUpdateService {
         if (inStock == null) errors.push("inStock is required");
         if (received == null) errors.push("received quantity is required");
         if (!actualDate) errors.push("actualDate is required");
+
+        if (errors.length > 0) {
+          return res.sendError(errors, "Validation failed", 400);
+        }
       }
 
       //if status is received and source is imported
@@ -65,6 +80,10 @@ class ProgressUpdateService {
         if (inStock == null) errors.push("inStock is required");
         if (received == null) errors.push("received is required");
         if (!actualDate) errors.push("actualDate is required");
+        if (received != qty)
+          errors.push(
+            "received quantity does not match the total required quantity",
+          );
       }
 
       if (errors.length > 0) {
@@ -113,7 +132,7 @@ class ProgressUpdateService {
   }
 
   //ProgressUpdate service function
-  public async createProgressUpdate(req: Request, res: Response) {
+  public async createUnderProcess(req: Request, res: Response) {
     try {
       //getting progress update id of line item thorugh params
       const { progressUpdateId } = req.params;
@@ -197,6 +216,149 @@ class ProgressUpdateService {
       return res.sendError(
         "Server Error",
         "Failed to create ProgressUpdate",
+        500,
+      );
+    }
+  }
+
+  public async createUnderSpecialProcess(req: Request, res: Response) {
+    try {
+      //getting progress update id of line item thorugh params
+      const { progressUpdateId } = req.params;
+      const {
+        type,
+        USPstatus,
+        completedQuantity,
+        pendingQuantity,
+        actualDate,
+        planDate,
+      } = req.body;
+
+      const errors: String[] = [];
+
+      //if status is open
+      if (USPstatus === underSpecialProcessStatus.OPEN) {
+        if (!planDate) errors.push("plan date is required");
+      }
+
+      //if status is in-progress
+      if (USPstatus === underSpecialProcessStatus.INPROGRESS) {
+        if (!planDate) errors.push("planDate is required");
+        if (completedQuantity == null)
+          errors.push("completedQuantity is required");
+      }
+
+      //if status is partial COMPLETED
+      if (USPstatus === underSpecialProcessStatus.PARTIALLY_COMPLETED) {
+        if (!planDate) errors.push("planDate is required");
+        if (completedQuantity == null)
+          errors.push("completedQuantity is required");
+        if (!actualDate) errors.push("actualDate is required");
+      }
+
+      //if status is COMPLETED
+      if (USPstatus === underSpecialProcessStatus.COMPLETED) {
+        if (!planDate) errors.push("planDate is required");
+        if (completedQuantity == null)
+          errors.push("completedQuantity is required");
+        if (!actualDate) errors.push("actualDate is required");
+      }
+
+      if (errors.length > 0) {
+        return res.sendError(errors, "Validation failed", 400);
+      }
+
+      const usp_obj = {
+        type,
+        USPstatus,
+        completedQuantity,
+        pendingQuantity,
+        actualDate,
+        planDate,
+      };
+
+      const usp_id: any = await this.progressUpdateRepo.checkEntity(
+        progressUpdateId,
+        "USP",
+      );
+      let created;
+
+      if (usp_id) {
+        created = await this.progressUpdateRepo.updateUnderSpecialProcess(
+          usp_id,
+          usp_obj,
+        );
+      } else {
+        created = await this.progressUpdateRepo.createUnderSpecialProcess(
+          progressUpdateId,
+          usp_obj,
+        );
+      }
+
+      return res.sendFormatted(
+        created,
+        "underSpecialProcess progress created sucessfully",
+        200,
+      );
+    } catch (error) {
+      console.log(error);
+      return res.sendError(
+        "Server Error",
+        "Failed to create underSpecialProcess",
+        500,
+      );
+    }
+  }
+
+  public async createFinalInspection(req: Request, res: Response) {
+    try {
+      //getting progress update id of line item thorugh params
+      const { progressUpdateId } = req.params;
+      const { isQualityCheckCompleted, QDLink } = req.body;
+
+      const errors: String[] = [];
+
+      if (isQualityCheckCompleted == isQualityCheckCompletedEnum.YES) {
+        if (QDLink == null) errors.push("QD link cannot be null");
+      }
+
+      if (errors.length > 0) {
+        return res.sendError(errors, "Validation failed", 400);
+      }
+
+      const fi_obj = {
+        isQualityCheckCompleted,
+        QDLink,
+      };
+
+      const fi_id: any = await this.progressUpdateRepo.checkEntity(
+        progressUpdateId,
+        "FI",
+      );
+      let created;
+
+      if (fi_id) {
+        created = await this.progressUpdateRepo.updateFinalInspection(
+          fi_id,
+          fi_obj,
+        );
+      } else {
+        created = await this.progressUpdateRepo.createFinalInspection(
+          progressUpdateId,
+          fi_obj,
+        );
+      }
+
+      return res.sendFormatted(
+        created,
+        "final inspection progress created sucessfully",
+        200,
+      );
+    } catch (error) {
+      console.log(error);
+      return res.sendError(
+        "Server Error",
+        "Failed to create final inspection",
         500,
       );
     }

@@ -1,10 +1,12 @@
 import rawMaterial from "../models/rawMaterial";
 import underProcessModel from "../models/underProcessModel";
 import underSpecialProcessModel from "../models/underSpecialProcessModel";
-import finalInspection from "../models/finalInspection";
+import finalInspectionModel from "../models/finalInspection";
 import { rawMaterialInterface } from "../../interfaces/rawMaterialInterface";
 import ProgressUpdateModel from "../models/progressUpdateModel";
 import { underProcessInterface } from "../../interfaces/underProcessInterface";
+import { underSpecialProcessInterface } from "../../interfaces/underSpecialProcessInterface";
+import { finalInspectionInterface } from "../../interfaces/finalInspection";
 
 class ProgressUpdateRepo {
   constructor() {}
@@ -107,12 +109,6 @@ class ProgressUpdateRepo {
     }
   }
 
-  //under special process  progress update
-  public async createUnderSpecialProcess() {}
-  public async getUnderSpecialProcess() {}
-  public async updateUnderSpecialProcess() {}
-  public async deleteUnderSpecialProcess() {}
-
   public async getAllProgressUpdate(supplierId: any) {
     try {
       const progressUpdates = await ProgressUpdateModel.find({
@@ -193,6 +189,114 @@ class ProgressUpdateRepo {
     } catch (error) {
       console.error(error, "Error updating underProcess");
       throw new Error("Failed to update underProcess");
+    }
+  }
+
+  //get open quantity
+  public async getQtyInfo(progressUpdateId: any) {
+    try {
+      const openqty =
+        await ProgressUpdateModel.findById(progressUpdateId).select(
+          "openqty qty",
+        );
+
+      return openqty;
+    } catch (error) {
+      console.error(error, "Error getting open quantity");
+      throw new Error("Failed to get openqty");
+    }
+  }
+  //update quantity
+  public async updateQuantity(progressUpdateId: any, quantity: number) {
+    try {
+      const openqty = await ProgressUpdateModel.findByIdAndUpdate(
+        progressUpdateId,
+        {
+          openqty: quantity,
+        },
+      );
+
+      return openqty;
+    } catch (error) {
+      console.error(error, "Error updating open qunatity");
+      throw new Error("Failed to update open qunatity");
+    }
+  }
+
+  //creae under special Process
+  public async createUnderSpecialProcess(
+    id: any,
+    underSpecialProcessData: underSpecialProcessInterface,
+  ) {
+    try {
+      const underSpecialProcess = await underSpecialProcessModel.create(
+        underSpecialProcessData,
+      );
+      //Update ProgressUpdate to link this underSpecialProcess
+      await ProgressUpdateModel.findByIdAndUpdate(id, {
+        underSpecialProcess: underSpecialProcess._id,
+      });
+      return underSpecialProcess?.toObject();
+    } catch (error) {
+      console.log(error, "error");
+      throw new Error(`Error while creating under Special Process Object`);
+    }
+  }
+
+  //Update underProcess progress update
+  public async updateUnderSpecialProcess(
+    underSpecialProcessId: string,
+    data: Partial<underSpecialProcessInterface>,
+  ) {
+    try {
+      return await underSpecialProcessModel.findByIdAndUpdate(
+        underSpecialProcessId,
+        data,
+        {
+          new: true,
+        },
+      );
+    } catch (error) {
+      console.error(error, "Error updating underProcess");
+      throw new Error("Failed to update underProcess");
+    }
+  }
+
+  //creae Final inspection
+  public async createFinalInspection(
+    id: any,
+    finalInspectionData: finalInspectionInterface,
+  ) {
+    try {
+      const finalInspection =
+        await finalInspectionModel.create(finalInspectionData);
+      //Update ProgressUpdate to link this underSpecialProcess
+      await ProgressUpdateModel.findByIdAndUpdate(id, {
+        finalInspection: finalInspection._id,
+      });
+      return finalInspection?.toObject();
+    } catch (error) {
+      console.log(error, "error");
+      throw new Error(`Error while creating Final InspectionObject`);
+    }
+  }
+
+  //Update final progress update
+  public async updateFinalInspection(
+    finalInspectionId: string,
+    data: Partial<finalInspectionInterface>,
+  ) {
+    try {
+      return await finalInspectionModel.findByIdAndUpdate(
+        finalInspectionId,
+        data,
+        {
+          new: true,
+        },
+      );
+    } catch (error) {
+      console.error(error, "Error updating Final Inspection");
+      throw new Error("Failed to update Final Inspection");
     }
   }
 }
