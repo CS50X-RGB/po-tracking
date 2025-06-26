@@ -113,7 +113,7 @@ class ProgressUpdateRepo {
   public async updateUnderSpecialProcess() {}
   public async deleteUnderSpecialProcess() {}
 
-  public async getAllProgressUpdate(supplierId: any) {
+  public async getAllProgressUpdate(supplierId: any, poId?: any) {
     try {
       const progressUpdates = await ProgressUpdateModel.find({
         supplier: supplierId,
@@ -142,12 +142,12 @@ class ProgressUpdateRepo {
             },
           ],
         })
-        .populate("supplier")
+        .populate("supplier  rawMaterial")
         .lean();
 
       // Group progress updates by purchase order ID
       const groupedByPO: Record<string, any> = {};
-
+      const ans: any[] = [];
       //Iterating through every progressUpdate in the original flat array.
       let purchaseOrder: any;
       for (const update of progressUpdates) {
@@ -173,9 +173,17 @@ class ProgressUpdateRepo {
 
         groupedByPO[poId].progressUpdates.push(update);
       }
-
+      if (poId) {
+        return groupedByPO[poId.toString()];
+      }
+      for (const [poId, group] of Object.entries(groupedByPO)) {
+        ans.push({
+          poId,
+          ...group,
+        });
+      }
       //At the end, return just the values (i.e., the grouped array):
-      return Object.values(groupedByPO);
+      return ans;
     } catch (error) {
       throw new Error(`Error while getting Progress Update Modals`);
     }

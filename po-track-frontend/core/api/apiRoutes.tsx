@@ -59,4 +59,7 @@ export const uomRoutes = {
 
 export const progressUpdate = {
   getAllProgress: "/progressUpdate/all/supplier-progress",
+  getSingleProgress: "/progressUpdate/single/supplier-progress/",
+  //manage Rm
+  manageRm: "/progressUpdate/rawMaterial/create/",
 };

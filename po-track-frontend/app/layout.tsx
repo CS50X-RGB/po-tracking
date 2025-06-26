@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner";
 import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site";
@@ -37,7 +37,7 @@ export default function RootLayout({
       <body
         suppressHydrationWarning
         className={clsx(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-blue-400/20 font-sans antialiased",
           fontSans.variable,
         )}
       >

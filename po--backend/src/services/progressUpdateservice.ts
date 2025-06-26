@@ -224,6 +224,29 @@ class ProgressUpdateService {
     }
   }
 
+  public async getProgressUpdateSingle(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError("Not Logged In", "Not Logged In", 400);
+      }
+      const poId = req.params.poId;
+      const { _id, supplier, client, name } = req.user;
+      const getProgressUpdateEntity =
+        await this.progressUpdateRepo.getAllProgressUpdate(supplier, poId);
+      return res.sendFormatted(
+        getProgressUpdateEntity,
+        "Got Single Entity",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(
+        "Error while getting the progress update",
+        "Getting Progress Update",
+        400,
+      );
+    }
+  }
+
   // public async updateRawMaterial(req: Request, res: Response) {
   //   try {
   //     const { rawMaterialId } = req.params;

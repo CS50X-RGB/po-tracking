@@ -22,6 +22,11 @@ router.get(
   userMiddleware.verify.bind(userMiddleware),
   progressUpdateservice.getProgressUpdate.bind(progressUpdateservice),
 );
+router.get(
+  "/single/supplier-progress/:poId",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.getProgressUpdateSingle.bind(progressUpdateservice),
+);
 
 // router.patch(
 //   "/rawMaterial/update/:rawMaterialId",
