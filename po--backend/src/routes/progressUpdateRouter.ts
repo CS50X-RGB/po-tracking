@@ -12,9 +12,9 @@ router.post(
   progressUpdateservice.createRawMaterial.bind(progressUpdateservice),
 );
 
-router.patch(
-  "/rawMaterial/update/:rawMaterialId",
-  progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),
+router.post(
+  "/underProcess/create/:progressUpdateId",
+  progressUpdateservice.createProgressUpdate.bind(progressUpdateservice),
 );
 
 router.get(
@@ -22,4 +22,10 @@ router.get(
   userMiddleware.verify.bind(userMiddleware),
   progressUpdateservice.getProgressUpdate.bind(progressUpdateservice),
 );
+
+// router.patch(
+//   "/rawMaterial/update/:rawMaterialId",
+//   progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),
+// );
+
 export default router;
