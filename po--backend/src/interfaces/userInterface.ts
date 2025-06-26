@@ -34,6 +34,7 @@ export interface IUserCreateReturn {
     name: string;
   };
 }
+
 export interface IUserLogin {
   name: string;
   password: string;

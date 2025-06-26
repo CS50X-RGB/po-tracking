@@ -215,7 +215,7 @@ class PurchaseOrderRepo {
       throw new Error(`Error while calculating EXW date: ${error.message}`);
     }
   }
-
+  //add one check supplier id == supplier id of line item
   public async getNonAcceptedPo(supplierId: any) {
     try {
       const pos = await PurchaseOrderModel.aggregate([
