@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-export enum isQualityCheckCompleted {
+export enum isQualityCheckCompletedEnum {
   YES = "yes",
   NO = "no",
 }
@@ -11,7 +11,7 @@ export enum inspectionTracker {
 }
 
 export interface IfinalSchema extends Document {
-  isQualityCheckCompleted: isQualityCheckCompleted;
+  isQualityCheckCompleted: isQualityCheckCompletedEnum;
   inspectionThreshHoldDate: Date;
   inspectionTracker: inspectionTracker;
   QDLink: string;
@@ -22,8 +22,8 @@ const FinalInspectionSchema = new Schema<IfinalSchema>(
   {
     isQualityCheckCompleted: {
       type: String,
-      enum: isQualityCheckCompleted,
-      default: isQualityCheckCompleted.NO,
+      enum: isQualityCheckCompletedEnum,
+      default: isQualityCheckCompletedEnum.NO,
     },
     inspectionThreshHoldDate: {
       type: Date,

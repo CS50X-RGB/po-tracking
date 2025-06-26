@@ -14,7 +14,15 @@ router.post(
 
 router.post(
   "/underProcess/create/:progressUpdateId",
-  progressUpdateservice.createProgressUpdate.bind(progressUpdateservice),
+  progressUpdateservice.createUnderProcess.bind(progressUpdateservice),
+);
+router.post(
+  "/underSpecialProcess/create/:progressUpdateId",
+  progressUpdateservice.createUnderSpecialProcess.bind(progressUpdateservice),
+);
+router.post(
+  "/finalInspection/create/:progressUpdateId",
+  progressUpdateservice.createFinalInspection.bind(progressUpdateservice),
 );
 
 router.get(
