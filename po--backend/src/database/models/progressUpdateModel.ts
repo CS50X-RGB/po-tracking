@@ -6,6 +6,7 @@ export interface IProgressUpdate extends Document {
   underSpecialProcess: mongoose.Schema.Types.ObjectId;
   finalInspection: mongoose.Schema.Types.ObjectId;
   LI: mongoose.Schema.Types.ObjectId;
+  supplier: mongoose.Schema.Types.ObjectId;
 }
 
 const ProgressUpdateSchema = new Schema<IProgressUpdate>(
@@ -30,6 +31,11 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
     LI: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "line_item",
+      required: true,
+    },
+    supplier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "supplier",
       required: true,
     },
   },

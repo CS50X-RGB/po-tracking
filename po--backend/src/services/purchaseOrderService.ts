@@ -102,7 +102,7 @@ class PurchaseOrderService {
         return res.sendError("Error while no user", "No Token", 400);
       }
       const { _id, name, client, supplier } = req.user;
-
+      console.log(supplier);
       const purchaseOrder = await this.poRepo.getNonAcceptedPo(supplier);
 
       return res.sendArrayFormatted(
@@ -117,11 +117,18 @@ class PurchaseOrderService {
 
   public async acceptLineItem(req: Request, res: Response) {
     try {
-      const lineItem = req.params.lineItem;
+      const lineItem = req.params.liId;
+      if (!req.user) {
+        return res.sendError("Error while not user", "User not signed up", 400);
+      }
       const { ssn, supplier_readliness_date }: any = req.body;
+
+      const { _id, client, supplier, name }: any = req.user;
       const acceptLineItem = await this.liRepo.accepteLineItem(
-        ssn,
+        lineItem,
         supplier_readliness_date,
+        supplier,
+        ssn,
       );
       return res.sendFormatted(acceptLineItem, "Line Item Accepted", 200);
     } catch (error) {

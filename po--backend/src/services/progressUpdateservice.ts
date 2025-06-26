@@ -194,6 +194,28 @@ class ProgressUpdateService {
       );
     }
   }
+
+  public async getProgressUpdate(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError("Not Logged In", "Not Logged In", 400);
+      }
+      const { _id, supplier, client, name } = req.user;
+      const getProgressUpdateEntites =
+        await this.progressUpdateRepo.getAllProgressUpdate(supplier);
+      return res.sendArrayFormatted(
+        getProgressUpdateEntites,
+        "Got All Entites",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(
+        "Error while getting the progress update",
+        "Getting Progress Update",
+        400,
+      );
+    }
+  }
 }
 
 export default ProgressUpdateService;

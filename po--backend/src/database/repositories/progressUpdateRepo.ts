@@ -8,7 +8,7 @@ import ProgressUpdateModel from "../models/progressUpdateModel";
 class ProgressUpdateRepo {
   constructor() {}
   //function to create a progress upate entiry for a line item
-  public async createProgressUpdate(data: { LI: string }) {
+  public async createProgressUpdate(data: { LI: string; supplier: any }) {
     try {
       return await ProgressUpdateModel.create(data);
     } catch (error) {
@@ -93,6 +93,43 @@ class ProgressUpdateRepo {
   public async getUnderSpecialProcess() {}
   public async updateUnderSpecialProcess() {}
   public async deleteUnderSpecialProcess() {}
+
+  public async getAllProgressUpdate(supplierId: any) {
+    try {
+      const progressUpdates = await ProgressUpdateModel.find({
+        supplier: supplierId,
+      })
+        .populate({
+          path: "LI",
+          populate: [
+            { path: "partNumber" },
+            { path: "uom" },
+            {
+              path: "purchaseOrder",
+              populate: [
+                {
+                  path: "client",
+                },
+                {
+                  path: "client_branch",
+                },
+                {
+                  path: "freight_term",
+                },
+                {
+                  path: "payment_term",
+                },
+              ],
+            },
+          ],
+        })
+        .populate("supplier")
+        .lean();
+      return progressUpdates;
+    } catch (error) {
+      throw new Error(`Error while getting Progress Update Modals`);
+    }
+  }
 }
 
 export default ProgressUpdateRepo;

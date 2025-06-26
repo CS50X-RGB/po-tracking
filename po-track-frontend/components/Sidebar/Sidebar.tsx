@@ -38,10 +38,10 @@ export default function Sidebar({
 
   return (
     <>
-      <Card className="fixed top-0 left-0 flex flex-col h-screen  z-10 p-2 justify-between overflow-visible ">
-        <div className="flex flex-col mx-auto space-y-2 justify-center">
+      <Card className="fixed top-0 left-0 flex flex-col h-screen items-center z-10 p-2 justify-between overflow-visible ">
+        <div className="flex flex-col mx-auto space-y-2 items-center justify-center">
           <Logo size={56} color="#3e9392" className="text-center" />
-          <h1 className="text-sm">PO-Tracking</h1>
+          <h1 className="text-sm font-bold">PO-Tracking</h1>
         </div>
 
         <div className="flex flex-col mx-auto space-y-8  justify-evenly relative">
@@ -158,7 +158,7 @@ export default function Sidebar({
             name={user.name}
           />
           <Button onPress={buttonHandler} className="flex items-center gap-2">
-            <LogOut size={24} />
+            <LogOut color="red" size={24} />
           </Button>
         </div>
       </Card>

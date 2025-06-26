@@ -19,11 +19,12 @@ class LineItemRepo {
       throw new Error(`Error while creating the line item: ${error.message}`);
     }
   }
+
   public async getNonAcceptedLineItem(poId: any, supplierId: any) {
     try {
       const allLineItems = await LineItemModel.find({
         purchaseOrder: poId,
-        supplier: supplierId,
+        // supplier: supplierId,
         supplier_readliness_date: { $in: [null, undefined] },
       })
         .populate("uom partNumber")
@@ -37,18 +38,19 @@ class LineItemRepo {
   public async accepteLineItem(
     id: string,
     supplier_readiness_date: Date,
+    supplier: any,
     ssn?: string,
   ) {
     try {
       let filter: any = {
-        supplier_readiness_date,
+        supplier_readliness_date: supplier_readiness_date,
       };
       if (ssn) {
         filter.ssn = ssn;
       }
       const updatedLi = await LineItemModel.findByIdAndUpdate(id, filter, {
         new: true,
-      });
+      }).lean();
 
       if (!updatedLi) {
         throw new Error(`Line Item with ID ${id} not found`);
@@ -56,6 +58,7 @@ class LineItemRepo {
       // Create Progress Update Entity by line item id
       const progressUpdate = await this.progresUpdateRepo.createProgressUpdate({
         LI: id,
+        supplier,
       });
 
       return updatedLi;

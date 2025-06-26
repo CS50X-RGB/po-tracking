@@ -134,8 +134,8 @@ export default function App() {
       if (role === "ADMIN") {
         console.log(role, "Role");
         router.push(permissions[0].link);
-      } else {
-        router.push("/user");
+      } else if (role === "SUPPLIER") {
+        router.push("/supplier");
       }
     },
     onError: (error: any) => {

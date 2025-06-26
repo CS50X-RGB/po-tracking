@@ -231,7 +231,6 @@ class PurchaseOrderRepo {
           $match: {
             lineItems: {
               $elemMatch: {
-                supplier: new Types.ObjectId(supplierId),
                 supplier_readliness_date: { $in: [null, undefined] },
               },
             },

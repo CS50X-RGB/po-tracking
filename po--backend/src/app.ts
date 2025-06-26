@@ -83,6 +83,10 @@ const permissions: PermissionCreate[] = [
     name: "Import Purchase Order",
     link: "/admin/po/import",
   },
+  {
+    name: "Update Progress",
+    link: "/supplier/progress",
+  },
 ];
 
 const paymentTerms: RoleInterface[] = [

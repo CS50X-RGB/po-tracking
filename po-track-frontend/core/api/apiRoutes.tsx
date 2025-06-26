@@ -56,3 +56,7 @@ export const masterRoutes = {
 export const uomRoutes = {
   getAllUom: "/uom/all",
 };
+
+export const progressUpdate = {
+  getAllProgress: "/progressUpdate/all/supplier-progress",
+};

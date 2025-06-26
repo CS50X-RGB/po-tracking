@@ -1,9 +1,11 @@
 import { Router } from "express";
 import ProgressUpdateService from "../services/progressUpdateservice";
+import UserMiddleware from "../middleware/userMiddleware";
 
 const router = Router();
 
 const progressUpdateservice = new ProgressUpdateService();
+const userMiddleware = new UserMiddleware();
 
 router.post(
   "/rawMaterial/create/:progressUpdateId",
@@ -15,8 +17,9 @@ router.patch(
   progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),
 );
 
-router.get("/test", (req, res) => {
-  res.send("Progress Update API is working");
-});
-
+router.get(
+  "/all/supplier-progress",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.getProgressUpdate.bind(progressUpdateservice),
+);
 export default router;

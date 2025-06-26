@@ -7,11 +7,14 @@ import { poRoutes } from "@/core/api/apiRoutes";
 import { Button, Input, useDisclosure } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function AcceptedPurchaseOrder() {
   const { id } = useParams();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [isLoading, setisLoading] = useState<boolean>(false);
   const {
     data: getLineItems,
     isFetching: isFetchingLineItems,
@@ -20,16 +23,28 @@ export default function AcceptedPurchaseOrder() {
     queryKey: ["getLineItem", id],
     queryFn: () => getData(`${poRoutes.notAcceptedLi}${id}`, {}),
   });
+  const [linetemId, setlineItemId] = useState<any>();
+  const router = useRouter();
   const updateLineItem = useMutation({
     mutationKey: ["updateLineItem"],
     mutationFn: (data: any) => {
-      return putData(`${poRoutes.acceptedLi}${data._id}`, {}, data);
+      return putData(`${poRoutes.acceptedLi}${linetemId}`, {}, data);
     },
     onSuccess: (data: any) => {
-      console.log("data", data.data);
+      console.log(data);
+      toast.success("Line Item Accepted", {
+        position: "top-right",
+      });
+      router.push("/supplier/accept");
+    },
+    onSettled: () => {
+      setisLoading(false);
+    },
+    onMutate: () => {
+      setisLoading(true);
     },
     onError: (data: any) => {
-      // console.log(error, "error");
+      console.log(data, "error");
     },
   });
   const [li, setli] = useState<any>({
@@ -54,12 +69,20 @@ export default function AcceptedPurchaseOrder() {
       [type]: type === "supplier_readliness_date" ? new Date(e) : e,
     }));
   };
+
   return (
     <>
       <div className="flex flex-col gap-4 p-4 text-white">
         {lineItems.length > 0 ? (
           lineItems.map((d: any, index: number) => (
-            <LineItemAccept onClick={onOpen} d={d} key={index} />
+            <LineItemAccept
+              onClick={() => {
+                setlineItemId(d._id);
+                onOpen();
+              }}
+              d={d}
+              key={index}
+            />
           ))
         ) : (
           <p>No unaccepted line items found.</p>
@@ -76,10 +99,37 @@ export default function AcceptedPurchaseOrder() {
         }
       >
         <div className="flex flex-col gap-4">
-          <form>
-            <Input />
-            <Input />
-            <Button>Submit</Button>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              updateLineItem.mutate(li);
+            }}
+            className="flex flex-col gap-4 p-5"
+          >
+            <Input
+              type="text"
+              onValueChange={(e) => handleSet(e, "ssn")}
+              label="Serial Number"
+            />
+            <Input
+              type="date"
+              label="Supplier Readliness Date"
+              value={
+                li.supplier_readliness_date
+                  ? new Date(li.supplier_readliness_date)
+                      .toISOString()
+                      .substring(0, 10)
+                  : ""
+              }
+              onChange={(e) =>
+                handleSet(e.target.value, "supplier_readliness_date")
+              }
+              isRequired
+              className="max-w-md"
+            />
+            <Button isLoading={isLoading} color="primary" type="submit">
+              Submit
+            </Button>
           </form>
         </div>
       </CustomModal>
