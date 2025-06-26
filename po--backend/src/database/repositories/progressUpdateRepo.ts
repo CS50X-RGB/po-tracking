@@ -136,7 +136,38 @@ class ProgressUpdateRepo {
         })
         .populate("supplier")
         .lean();
-      return progressUpdates;
+
+      // Group progress updates by purchase order ID
+      const groupedByPO: Record<string, any> = {};
+
+      //Iterating through every progressUpdate in the original flat array.
+      let purchaseOrder: any;
+      for (const update of progressUpdates) {
+        //Grabs the purchaseOrder from the line item in the update.
+        if ("purchaseOrder" in (update.LI || {})) {
+          purchaseOrder = (update.LI as any).purchaseOrder;
+        }
+        //Skips the update if there's no purchase order.
+        if (!purchaseOrder) continue;
+
+        //Gets the unique purchase order ID as a string
+        const poId = purchaseOrder._id.toString();
+
+        //If this PO hasn’t been added yet to groupedByPO, create a new entry with:
+        if (!groupedByPO[poId]) {
+          groupedByPO[poId] = {
+            purchaseOrder,
+            progressUpdates: [],
+          };
+        }
+
+        //Add the current progress update to the progressUpdates array under the right PO.
+
+        groupedByPO[poId].progressUpdates.push(update);
+      }
+
+      //At the end, return just the values (i.e., the grouped array):
+      return Object.values(groupedByPO);
     } catch (error) {
       throw new Error(`Error while getting Progress Update Modals`);
     }
