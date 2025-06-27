@@ -160,16 +160,28 @@ export default function ProgressUpdateModal({
               addEntity.mutate(state);
             }}
           >
-            <Select
-              onChange={(e) => handleSet("source", e.target.value)}
-              className="max-w-xs"
-              selectedKeys={[state.source]}
-              label="Select RM Source"
-            >
-              {rm_source.map((animal) => (
-                <SelectItem key={animal.key}>{animal.label}</SelectItem>
-              ))}
-            </Select>
+            {state.source ? (
+              <Select
+                onChange={(e) => handleSet("source", e.target.value)}
+                className="max-w-xs"
+                selectedKeys={[state.source.toString()]}
+                label="Select RM Source"
+              >
+                {rm_source.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Select
+                onChange={(e) => handleSet("source", e.target.value)}
+                className="max-w-xs"
+                label="Select RM Source"
+              >
+                {rm_source.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            )}
             <Input
               value={state.inStock}
               onValueChange={(e) => handleSet("inStock", e)}
@@ -232,16 +244,28 @@ export default function ProgressUpdateModal({
               addEntity.mutate(state);
             }}
           >
-            <Select
-              onChange={(e) => handleSet("type", e.target.value)}
-              className="max-w-xs"
-              selectedKeys={[state.source]}
-              label="Select UP type"
-            >
-              {up_type.map((animal) => (
-                <SelectItem key={animal.key}>{animal.label}</SelectItem>
-              ))}
-            </Select>
+            {state.type ? (
+              <Select
+                onChange={(e) => handleSet("type", e.target.value)}
+                className="max-w-xs"
+                selectedKeys={[state.type.toString()]}
+                label="Select UP type"
+              >
+                {up_type.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Select
+                onChange={(e) => handleSet("type", e.target.value)}
+                className="max-w-xs"
+                label="Select UP type"
+              >
+                {up_type.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            )}
             <Input
               value={state.completedQuantity}
               onValueChange={(e) => handleSet("completedQuantity", e)}
@@ -276,15 +300,28 @@ export default function ProgressUpdateModal({
               isRequired
               className="max-w-md"
             />
-            <Select
-              onChange={(e) => handleSet("UPstatus", e.target.value)}
-              className="max-w-xs"
-              label="Select UP Status"
-            >
-              {up_status.map((animal) => (
-                <SelectItem key={animal.key}>{animal.label}</SelectItem>
-              ))}
-            </Select>
+            {state.UPstatus ? (
+              <Select
+                onChange={(e) => handleSet("UPstatus", e.target.value)}
+                className="max-w-xs"
+                selectedKeys={[state.UPstatus.toString()]}
+                label="Select UP Status"
+              >
+                {up_status.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Select
+                onChange={(e) => handleSet("UPstatus", e.target.value)}
+                className="max-w-xs"
+                label="Select UP Status"
+              >
+                {up_status.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            )}
             <Button
               isLoading={isLoading}
               type="submit"
