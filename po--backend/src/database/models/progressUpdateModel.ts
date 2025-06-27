@@ -1,5 +1,13 @@
 import mongoose, { Schema } from "mongoose";
 
+type DeliveryStatus =
+  | "New"
+  | "InProgress"
+  | "Ready and Packed"
+  | "Ready for Inspection"
+  | "QD Approved"
+  | "QD Rejected";
+
 export interface IProgressUpdate extends Document {
   rawMaterial: mongoose.Schema.Types.ObjectId;
   underProcess: mongoose.Schema.Types.ObjectId;
