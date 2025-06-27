@@ -72,6 +72,7 @@ export default function ProgressUpdate() {
                     </div>
                   </div>
                   <Eye
+                    className="cursor-pointer"
                     onClick={() => router.push(`/supplier/progress/${po._id}`)}
                   />
                 </CardBody>

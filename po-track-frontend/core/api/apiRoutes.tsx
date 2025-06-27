@@ -64,4 +64,5 @@ export const progressUpdate = {
   manageRm: "/progressUpdate/rawMaterial/create/",
 
   manageUp: "/progressUpdate/underProcess/create/",
+  manageFi: "/progressUpdate/finalInspection/create/",
 };

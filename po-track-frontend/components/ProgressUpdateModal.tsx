@@ -61,11 +61,27 @@ export default function ProgressUpdateModal({
     },
   });
   const handleSet = (field: string, value: any) => {
-    setState((prev: any) => ({
-      ...prev,
-      [field]:
-        field == "planDate" || field == "actualDate" ? new Date(value) : value,
-    }));
+    if (field === "inStock") {
+      setState((prev: any) => ({
+        ...prev,
+        recieved: qty - value,
+        [field]: value,
+      }));
+    } else if (field === "completedQuantity") {
+      setState((prev: any) => ({
+        ...prev,
+        pendingQuantity: qty - value,
+        [field]: value,
+      }));
+    } else {
+      setState((prev: any) => ({
+        ...prev,
+        [field]:
+          field === "planDate" || field === "actualDate"
+            ? new Date(value)
+            : value,
+      }));
+    }
   };
 
   useEffect(() => {
@@ -73,8 +89,9 @@ export default function ProgressUpdateModal({
       if (value) {
         handleSet("planDate", value.planDate);
         handleSet("actualDate", value.actualDate);
-        handleSet("soruce", value.soruce);
+        handleSet("source", value.source);
         handleSet("inStock", value.inStock);
+        handleSet("RMstatus", value.RMstatus);
       }
       handleSet("recieved", qty);
     }
@@ -85,10 +102,20 @@ export default function ProgressUpdateModal({
         handleSet("actualDate", value.actualDate);
         handleSet("type", value.type);
         handleSet("completedQuantity", value.completedQuantity);
+        handleSet("UPstatus", value.UPstatus);
       }
       handleSet("pendingQuantity", qty);
     }
+
+    if (type == "FI") {
+      if (value) {
+        handleSet("isQualityCheckCompleted", value.isQualityCheckCompleted);
+        handleSet("QDLink", value.QDLink);
+      }
+    }
   }, [type]);
+
+  console.log(value, state, "RM");
 
   const getModalInfo = () => {
     const rm_source = [
@@ -128,6 +155,17 @@ export default function ProgressUpdateModal({
       {
         key: "outsourced",
         label: "Outsourced",
+      },
+    ];
+
+    const final_type = [
+      {
+        key: "yes",
+        label: "Yes",
+      },
+      {
+        key: "no",
+        label: "No",
       },
     ];
 
@@ -184,6 +222,8 @@ export default function ProgressUpdateModal({
             )}
             <Input
               value={state.inStock}
+              min={0}
+              max={Number(qty)}
               onValueChange={(e) => handleSet("inStock", e)}
               label="In Stock"
             />
@@ -216,15 +256,28 @@ export default function ProgressUpdateModal({
               isRequired
               className="max-w-md"
             />
-            <Select
-              onChange={(e) => handleSet("RMstatus", e.target.value)}
-              className="max-w-xs"
-              label="Select RM Status"
-            >
-              {rm_status.map((animal) => (
-                <SelectItem key={animal.key}>{animal.label}</SelectItem>
-              ))}
-            </Select>
+            {state.RMstatus ? (
+              <Select
+                onChange={(e) => handleSet("RMstatus", e.target.value)}
+                className="max-w-xs"
+                selectedKeys={[state.RMstatus.toString()]}
+                label="Select RM Status"
+              >
+                {rm_status.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Select
+                onChange={(e) => handleSet("RMstatus", e.target.value)}
+                className="max-w-xs"
+                label="Select RM Status"
+              >
+                {rm_status.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            )}
             <Button
               isLoading={isLoading}
               type="submit"
@@ -332,6 +385,56 @@ export default function ProgressUpdateModal({
             </Button>
           </form>
         );
+      case "FI":
+        return (
+          <form
+            className="flex flex-col gap-4 p-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addEntity.mutate(state);
+            }}
+          >
+            {state.isQualityCheckCompleted ? (
+              <Select
+                onChange={(e) =>
+                  handleSet("isQualityCheckCompleted", e.target.value)
+                }
+                className="max-w-xs"
+                selectedKeys={[state.isQualityCheckCompleted.toString()]}
+                label="Is Quality Checked?"
+              >
+                {final_type.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Select
+                onChange={(e) =>
+                  handleSet("isQualityCheckCompleted", e.target.value)
+                }
+                className="max-w-xs"
+                label="Is Quality Checked?"
+              >
+                {final_type.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            )}
+            <Input
+              value={state.QDLink}
+              onValueChange={(e) => handleSet("QDLink", e)}
+              label="Quality Document Link"
+            />
+            <Button
+              isLoading={isLoading}
+              type="submit"
+              color="primary"
+              className="mt-4"
+            >
+              Submit
+            </Button>
+          </form>
+        );
       default:
         return null;
     }
@@ -341,7 +444,9 @@ export default function ProgressUpdateModal({
     <>
       <Button className="bg-green-500" onPress={onOpen}>
         {" "}
-        <span>Update {type}</span>
+        <span>
+          {value ? "Update" : "Add"} {type}
+        </span>
         <BadgePlus size={20} />
       </Button>
       <CustomModal

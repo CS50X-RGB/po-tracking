@@ -77,7 +77,7 @@ export default function PageProgress() {
             const lineItem = item?.LI;
             const rm = item?.rawMaterial;
             const up = item?.underProcess;
-            console.log(item?.rawMaterial);
+            const fi = item?.finalInspection;
 
             return (
               <Card
@@ -124,7 +124,7 @@ export default function PageProgress() {
                     </h2>
                   </div>
                 </CardBody>
-                <CardFooter>
+                <CardFooter className="flex flex-row gap-4">
                   <ProgressUpdateModal
                     type="RM"
                     puId={item?._id}
@@ -132,13 +132,24 @@ export default function PageProgress() {
                     value={rm}
                     apiRoute={routes.manageRm}
                   />
-                  <ProgressUpdateModal
-                    type="UP"
-                    puId={item?._id}
-                    qty={item?.qty}
-                    value={up}
-                    apiRoute={routes.manageUp}
-                  />
+                  {rm && (
+                    <ProgressUpdateModal
+                      type="UP"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={up}
+                      apiRoute={routes.manageUp}
+                    />
+                  )}
+                  {rm && up && (
+                    <ProgressUpdateModal
+                      type="FI"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={fi}
+                      apiRoute={routes.manageFi}
+                    />
+                  )}
                 </CardFooter>
               </Card>
             );
