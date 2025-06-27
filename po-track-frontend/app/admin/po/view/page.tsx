@@ -14,7 +14,7 @@ export default function POView() {
     isFetched: isFetchedGetPos,
     isFetching: isFetchingGetPos,
   } = useQuery({
-    queryKey: ["getPos"],
+    queryKey: ["getPos", page],
     queryFn: () => {
       return getData(`${poRoutes.viewPo}${page}/5`, {});
     },

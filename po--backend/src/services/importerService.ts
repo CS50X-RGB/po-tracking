@@ -21,24 +21,46 @@ class ImportService {
       fs.unlink(req.file.path, (err) => {
         if (err) console.log("File Deletion Failed:", err);
       });
-      const formattedData: PoCreateExcel[] = sheetData.map((row: any) => ({
-        po_name: row["PO Number"],
-        client: row["Client Name"],
-        client_branch: row["Client Branch"],
-        payment_term: row["Payment Terms"],
-        freight_term: row["Freight Terms"],
-        order_date: row["Order Date"],
-        supplier: row["Supplier"],
-        name: row["Line Item Number"],
-        currency: row["Currency"],
-        part_number: row["Part Number"],
-        line_item_type: row["Line Item type"],
-        priority: row["Priority"],
-        uom: row["Unit of Measurement"],
-        qty: row["Quantity"],
-        unit_price: row["Unit Price"],
-        date_required: row["Date Required"],
-      }));
+      function excelSerialToDate(serial: number): string {
+        const excelEpoch = new Date(1899, 11, 30);
+        const jsDate = new Date(excelEpoch.getTime() + serial * 86400000);
+        const year = jsDate.getFullYear();
+        const month = String(jsDate.getMonth() + 1).padStart(2, "0");
+        const day = String(jsDate.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      const formattedData: PoCreateExcel[] = sheetData.map((row: any) => {
+        const isSerialDate = (val: any) =>
+          typeof val === "number" && !isNaN(val);
+
+        const trimIfString = (val: any) =>
+          typeof val === "string" ? val.trim() : val;
+
+        const formatDate = (val: any) =>
+          isSerialDate(val) ? excelSerialToDate(val) : trimIfString(val);
+
+        return {
+          po_name: trimIfString(row["PO Number"]),
+          client: trimIfString(row["Client Name"]),
+          client_branch: row["Client Branch"],
+          payment_term: trimIfString(row["Payment Terms"]),
+          freight_term: trimIfString(row["Freight Terms"]),
+          order_date: formatDate(row["Order Date"]),
+          supplier: trimIfString(row["Supplier"]),
+          name: row["Line Item Number"],
+          currency: trimIfString(row["Currency"]),
+          part_number: row["Part Number"],
+          line_item_type: trimIfString(row["Line Item type"]),
+          priority: trimIfString(row["Priority"]),
+          uom: trimIfString(row["Unit of Measurement"]),
+          qty: row["Quantity"],
+          unit_price: row["Unit Price"],
+          date_required: formatDate(row["Date Required"]),
+        };
+      });
+
+      console.log(formattedData, "data");
       const { po, count } =
         await this.purchaseOrderRepo.createImportEntities(formattedData);
       return res.sendArrayFormatted(
