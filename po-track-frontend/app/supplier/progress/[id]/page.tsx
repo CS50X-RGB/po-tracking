@@ -77,6 +77,7 @@ export default function PageProgress() {
             const lineItem = item?.LI;
             const rm = item?.rawMaterial;
             const up = item?.underProcess;
+            const usp = item?.underSpecialProcess;
             console.log(item?.rawMaterial);
 
             return (
@@ -138,6 +139,13 @@ export default function PageProgress() {
                     qty={item?.qty}
                     value={up}
                     apiRoute={routes.manageUp}
+                  />
+                  <ProgressUpdateModal
+                    type="USP"
+                    puId={item?._id}
+                    qty={item?.qty}
+                    value={usp}
+                    apiRoute={routes.manageUsp}
                   />
                 </CardFooter>
               </Card>

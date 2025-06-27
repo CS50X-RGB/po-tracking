@@ -33,6 +33,22 @@ export default function ProgressUpdateModal({
   const { isOpen, onOpenChange, onOpen, onClose } = useDisclosure();
   const [state, setState] = useState<any>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  //utility function to get the customize tost message
+  function getToastMessage(type: string, isError: boolean = false) {
+    const action = isError ? "Error while updating" : "Added successfully";
+    switch (type) {
+      case "RM":
+        return isError ? "Error while updating RM" : "RM added successfully";
+      case "UP":
+        return isError ? "Error while updating UP" : "UP added successfully";
+      case "USP":
+        return isError ? "Error while updating USP" : "USP added successfully";
+      default:
+        return isError ? "Error occurred" : "Added successfully";
+    }
+  }
+
   const addEntity = useMutation({
     mutationKey: ["addEntity"],
     mutationFn: (data: any) => {
@@ -46,7 +62,7 @@ export default function ProgressUpdateModal({
     },
     onSuccess: (data: any) => {
       console.log(data, "Response");
-      toast.success("Rm Added", {
+      toast.success(getToastMessage(type), {
         position: "top-right",
       });
       queryClient.invalidateQueries();
@@ -80,6 +96,16 @@ export default function ProgressUpdateModal({
     }
 
     if (type == "UP") {
+      if (value) {
+        handleSet("planDate", value.planDate);
+        handleSet("actualDate", value.actualDate);
+        handleSet("type", value.type);
+        handleSet("completedQuantity", value.completedQuantity);
+      }
+      handleSet("pendingQuantity", qty);
+    }
+
+    if (type == "USP") {
       if (value) {
         handleSet("planDate", value.planDate);
         handleSet("actualDate", value.actualDate);
@@ -150,6 +176,36 @@ export default function ProgressUpdateModal({
       },
     ];
 
+    const usp_type = [
+      {
+        key: "in-house",
+        label: "In House",
+      },
+      {
+        key: "outsourced",
+        label: "Outsourced",
+      },
+    ];
+
+    const usp_status = [
+      {
+        key: "open",
+        label: "Open",
+      },
+      {
+        key: "in-progress",
+        label: "InProgress",
+      },
+      {
+        key: "partially-completed",
+        label: "Partially Completed",
+      },
+      {
+        key: "completed",
+        label: "Completed",
+      },
+    ];
+
     switch (type) {
       case "RM":
         return (
@@ -160,28 +216,16 @@ export default function ProgressUpdateModal({
               addEntity.mutate(state);
             }}
           >
-            {state.source ? (
-              <Select
-                onChange={(e) => handleSet("source", e.target.value)}
-                className="max-w-xs"
-                selectedKeys={[state.source.toString()]}
-                label="Select RM Source"
-              >
-                {rm_source.map((animal) => (
-                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
-                ))}
-              </Select>
-            ) : (
-              <Select
-                onChange={(e) => handleSet("source", e.target.value)}
-                className="max-w-xs"
-                label="Select RM Source"
-              >
-                {rm_source.map((animal) => (
-                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
-                ))}
-              </Select>
-            )}
+            <Select
+              onChange={(e) => handleSet("source", e.target.value)}
+              className="max-w-xs"
+              selectedKeys={[state.source]}
+              label="Select RM Source"
+            >
+              {rm_source.map((animal) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
             <Input
               value={state.inStock}
               onValueChange={(e) => handleSet("inStock", e)}
@@ -244,28 +288,16 @@ export default function ProgressUpdateModal({
               addEntity.mutate(state);
             }}
           >
-            {state.type ? (
-              <Select
-                onChange={(e) => handleSet("type", e.target.value)}
-                className="max-w-xs"
-                selectedKeys={[state.type.toString()]}
-                label="Select UP type"
-              >
-                {up_type.map((animal) => (
-                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
-                ))}
-              </Select>
-            ) : (
-              <Select
-                onChange={(e) => handleSet("type", e.target.value)}
-                className="max-w-xs"
-                label="Select UP type"
-              >
-                {up_type.map((animal) => (
-                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
-                ))}
-              </Select>
-            )}
+            <Select
+              onChange={(e) => handleSet("type", e.target.value)}
+              className="max-w-xs"
+              selectedKeys={[state.source]}
+              label="Select UP type"
+            >
+              {up_type.map((animal) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
             <Input
               value={state.completedQuantity}
               onValueChange={(e) => handleSet("completedQuantity", e)}
@@ -300,28 +332,87 @@ export default function ProgressUpdateModal({
               isRequired
               className="max-w-md"
             />
-            {state.UPstatus ? (
-              <Select
-                onChange={(e) => handleSet("UPstatus", e.target.value)}
-                className="max-w-xs"
-                selectedKeys={[state.UPstatus.toString()]}
-                label="Select UP Status"
-              >
-                {up_status.map((animal) => (
-                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
-                ))}
-              </Select>
-            ) : (
-              <Select
-                onChange={(e) => handleSet("UPstatus", e.target.value)}
-                className="max-w-xs"
-                label="Select UP Status"
-              >
-                {up_status.map((animal) => (
-                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
-                ))}
-              </Select>
-            )}
+            <Select
+              onChange={(e) => handleSet("UPstatus", e.target.value)}
+              className="max-w-xs"
+              label="Select UP Status"
+            >
+              {up_status.map((animal) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
+            <Button
+              isLoading={isLoading}
+              type="submit"
+              color="primary"
+              className="mt-4"
+            >
+              Submit
+            </Button>
+          </form>
+        );
+      case "USP":
+        return (
+          <form
+            className="flex flex-col gap-4 p-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addEntity.mutate(state);
+            }}
+          >
+            <Select
+              onChange={(e) => handleSet("type", e.target.value)}
+              className="max-w-xs"
+              selectedKeys={[state.source]}
+              label="Select USP type"
+            >
+              {usp_type.map((animal) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
+            <Input
+              value={state.completedQuantity}
+              onValueChange={(e) => handleSet("completedQuantity", e)}
+              label="Completed Quantity"
+            />
+            <Input
+              value={state.pendingQuantity}
+              label="Pending Quantity"
+              isReadOnly={true}
+            />
+            <Input
+              type="date"
+              label="USP Plan Date"
+              value={
+                state.planDate
+                  ? new Date(state.planDate).toISOString().substring(0, 10)
+                  : ""
+              }
+              onChange={(e) => handleSet("planDate", e.target.value)}
+              isRequired
+              className="max-w-md"
+            />
+            <Input
+              type="date"
+              label="USP Actual Date"
+              value={
+                state.actualDate
+                  ? new Date(state.actualDate).toISOString().substring(0, 10)
+                  : ""
+              }
+              onChange={(e) => handleSet("actualDate", e.target.value)}
+              isRequired
+              className="max-w-md"
+            />
+            <Select
+              onChange={(e) => handleSet("USPstatus", e.target.value)}
+              className="max-w-xs"
+              label="Select USP Status"
+            >
+              {usp_status.map((animal) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
             <Button
               isLoading={isLoading}
               type="submit"

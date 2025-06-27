@@ -141,7 +141,7 @@ class ProgressUpdateRepo {
             },
           ],
         })
-        .populate("supplier  rawMaterial underProcess")
+        .populate("supplier  rawMaterial underProcess underSpecialProcess")
         .lean();
 
       // Group progress updates by purchase order ID
