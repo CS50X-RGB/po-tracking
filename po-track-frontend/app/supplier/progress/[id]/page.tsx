@@ -38,8 +38,8 @@ export default function PageProgress() {
       </div>
     );
   } else {
-    const purchaseOrder = getSingleProgress?.data?.data?.purchaseOrder;
-    const progressUpdate = getSingleProgress?.data?.data?.progressUpdates;
+    const purchaseOrder = getSingleProgress?.data?.data?.purchaseOrder ?? [];
+    const progressUpdate = getSingleProgress?.data?.data?.progressUpdates ?? [];
 
     return (
       <div className="flex flex-col gap-4 w-full p-4">
@@ -78,13 +78,14 @@ export default function PageProgress() {
             const rm = item?.rawMaterial;
             const up = item?.underProcess;
             const fi = item?.finalInspection;
+            const usp = item?.underSpecialProcess;
 
             return (
               <Card
                 key={index}
                 className="p-4 w-full shadow-md text-white rounded-xl"
               >
-                <CardBody className="flex flex-row gap-4">
+                <CardBody className="flex flex-row flex-wrap gap-4">
                   <h2 className="flex flex-row gap-4 text-lg font-semibold">
                     <span>Line Item</span>
                     <span>{lineItem?.name}</span>
@@ -141,7 +142,16 @@ export default function PageProgress() {
                       apiRoute={routes.manageUp}
                     />
                   )}
-                  {rm && up && (
+                  {rm && (
+                    <ProgressUpdateModal
+                      type="USP"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={usp}
+                      apiRoute={routes.manageUsp}
+                    />
+                  )}
+                  {rm && (up || usp) && (
                     <ProgressUpdateModal
                       type="FI"
                       puId={item?._id}
