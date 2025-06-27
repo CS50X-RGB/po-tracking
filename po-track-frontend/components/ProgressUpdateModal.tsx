@@ -78,6 +78,16 @@ export default function ProgressUpdateModal({
       }
       handleSet("recieved", qty);
     }
+
+    if (type == "UP") {
+      if (value) {
+        handleSet("planDate", value.planDate);
+        handleSet("actualDate", value.actualDate);
+        handleSet("type", value.type);
+        handleSet("completedQuantity", value.completedQuantity);
+      }
+      handleSet("pendingQuantity", qty);
+    }
   }, [type]);
 
   const getModalInfo = () => {
@@ -107,6 +117,36 @@ export default function ProgressUpdateModal({
       {
         key: "received",
         label: "Recieved",
+      },
+    ];
+
+    const up_type = [
+      {
+        key: "in-house",
+        label: "In House",
+      },
+      {
+        key: "outsourced",
+        label: "Outsourced",
+      },
+    ];
+
+    const up_status = [
+      {
+        key: "open",
+        label: "Open",
+      },
+      {
+        key: "in-progress",
+        label: "InProgress",
+      },
+      {
+        key: "partially-completed",
+        label: "Partially Completed",
+      },
+      {
+        key: "completed",
+        label: "Completed",
       },
     ];
 
@@ -193,28 +233,28 @@ export default function ProgressUpdateModal({
             }}
           >
             <Select
-              onChange={(e) => handleSet("source", e.target.value)}
+              onChange={(e) => handleSet("type", e.target.value)}
               className="max-w-xs"
               selectedKeys={[state.source]}
-              label="Select RM Source"
+              label="Select UP type"
             >
-              {rm_source.map((animal) => (
+              {up_type.map((animal) => (
                 <SelectItem key={animal.key}>{animal.label}</SelectItem>
               ))}
             </Select>
             <Input
-              value={state.inStock}
-              onValueChange={(e) => handleSet("inStock", e)}
-              label="In Stock"
+              value={state.completedQuantity}
+              onValueChange={(e) => handleSet("completedQuantity", e)}
+              label="Completed Quantity"
             />
             <Input
-              value={state.recieved}
-              label="RM to Receive"
+              value={state.pendingQuantity}
+              label="Pending Quantity"
               isReadOnly={true}
             />
             <Input
               type="date"
-              label="RM Plan Date"
+              label="UP Plan Date"
               value={
                 state.planDate
                   ? new Date(state.planDate).toISOString().substring(0, 10)
@@ -226,7 +266,7 @@ export default function ProgressUpdateModal({
             />
             <Input
               type="date"
-              label="RM Actual Date"
+              label="UP Actual Date"
               value={
                 state.actualDate
                   ? new Date(state.actualDate).toISOString().substring(0, 10)
@@ -237,11 +277,11 @@ export default function ProgressUpdateModal({
               className="max-w-md"
             />
             <Select
-              onChange={(e) => handleSet("RMstatus", e.target.value)}
+              onChange={(e) => handleSet("UPstatus", e.target.value)}
               className="max-w-xs"
-              label="Select RM Status"
+              label="Select UP Status"
             >
-              {rm_status.map((animal) => (
+              {up_status.map((animal) => (
                 <SelectItem key={animal.key}>{animal.label}</SelectItem>
               ))}
             </Select>

@@ -62,4 +62,6 @@ export const progressUpdate = {
   getSingleProgress: "/progressUpdate/single/supplier-progress/",
   //manage Rm
   manageRm: "/progressUpdate/rawMaterial/create/",
+
+  manageUp: "/progressUpdate/underProcess/create/",
 };

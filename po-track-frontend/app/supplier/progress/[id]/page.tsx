@@ -76,6 +76,7 @@ export default function PageProgress() {
           {progressUpdate.map((item: any, index: number) => {
             const lineItem = item?.LI;
             const rm = item?.rawMaterial;
+            const up = item?.underProcess;
             console.log(item?.rawMaterial);
 
             return (
@@ -130,6 +131,13 @@ export default function PageProgress() {
                     qty={item?.qty}
                     value={rm}
                     apiRoute={routes.manageRm}
+                  />
+                  <ProgressUpdateModal
+                    type="UP"
+                    puId={item?._id}
+                    qty={item?.qty}
+                    value={up}
+                    apiRoute={routes.manageUp}
                   />
                 </CardFooter>
               </Card>
