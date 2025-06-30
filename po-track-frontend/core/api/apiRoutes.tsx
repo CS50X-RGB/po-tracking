@@ -67,3 +67,7 @@ export const progressUpdate = {
   manageFi: "/progressUpdate/finalInspection/create/",
   manageUsp: "progressUpdate/underSpecialProcess/create/",
 };
+
+export const analyticsRoute = {
+  getAdminAnalytics: "/adminAnalytics/totalPOCount",
+};
