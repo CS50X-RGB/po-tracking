@@ -74,11 +74,13 @@ export default function PageProgress() {
 
         <div className="space-y-4">
           {progressUpdate.map((item: any, index: number) => {
+            console.log(item.delivery_status, "status");
             const lineItem = item?.LI;
             const rm = item?.rawMaterial;
             const up = item?.underProcess;
             const fi = item?.finalInspection;
             const usp = item?.underSpecialProcess;
+            const cipl = item?.cipl;
 
             return (
               <Card
@@ -268,6 +270,17 @@ export default function PageProgress() {
                         apiRoute={routes.manageFi}
                       />
                     ))}
+                  {!["New", "InProgress", "Ready for Inspection"].includes(
+                    item.delivery_status,
+                  ) && (
+                    <ProgressUpdateModal
+                      type="CIPL"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={cipl}
+                      apiRoute={routes.manageCIPL}
+                    />
+                  )}
                 </CardFooter>
               </Card>
             );

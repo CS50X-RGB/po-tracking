@@ -48,7 +48,7 @@ export default function ProgressUpdateModal({
   value,
   status,
 }: {
-  type: "RM" | "UP" | "USP" | "FI";
+  type: "RM" | "UP" | "USP" | "FI" | "CIPL";
   qty: any;
   puId: any;
   apiRoute: any;
@@ -120,7 +120,9 @@ export default function ProgressUpdateModal({
       setState((prev: any) => ({
         ...prev,
         [field]:
-          field === "planDate" || field === "actualDate"
+          field === "planDate" ||
+          field === "actualDate" ||
+          field === "ciplSubDateToClient"
             ? new Date(value)
             : value,
       }));
@@ -164,6 +166,15 @@ export default function ProgressUpdateModal({
         handleSet("USPstatus", value.USPstatus);
       }
       handleSet("pendingQuantity", qty);
+    }
+    if (type == "CIPL") {
+      if (value) {
+        handleSet("isCiplReady", value.isCiplReady);
+        handleSet("invoiceNo", value.invoiceNo);
+        handleSet("ciplSubDateToClient", value.ciplSubDateToClient);
+        handleSet("ciplDocumentLink", value.ciplDocumentLink);
+        handleSet("dispatchedQty", value.dispatchedQty);
+      }
     }
   }, [type]);
   console.log("state", state.UPstatus);
@@ -578,13 +589,90 @@ export default function ProgressUpdateModal({
             </Button>
           </form>
         );
+      case "CIPL":
+        return (
+          <form
+            className="flex flex-col gap-4 p-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addEntity.mutate(state);
+            }}
+          >
+            {state.isCiplReady ? (
+              <Select
+                isRequired={true}
+                onChange={(e) => handleSet("isCiplReady", e.target.value)}
+                className="max-w-xs"
+                selectedKeys={[state.isCiplReady.toString()]}
+                label="Is CIPL Ready?"
+              >
+                {final_type.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Select
+                isRequired={true}
+                onChange={(e) => handleSet("isCiplReady", e.target.value)}
+                className="max-w-xs"
+                label="Is CIPL Ready?"
+              >
+                {final_type.map((animal) => (
+                  <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                ))}
+              </Select>
+            )}
+            <Input
+              isRequired={true}
+              value={state.invoiceNo}
+              onValueChange={(e) => handleSet("invoiceNo", e)}
+              label="Invoice No"
+            />
+            <Input
+              isRequired={true}
+              value={state.ciplDocumentLink}
+              onValueChange={(e) => handleSet("ciplDocumentLink", e)}
+              label="CIPL Document Link"
+            />
+            <Input
+              isRequired={true}
+              value={state.dispatchedQty}
+              onValueChange={(e) => handleSet("dispatchedQty", e)}
+              label="Quantity Dispatched"
+            />
+            <Input
+              type="date"
+              label="Submission Date To Client"
+              value={
+                state.ciplSubDateToClient
+                  ? new Date(state.ciplSubDateToClient)
+                      .toISOString()
+                      .substring(0, 10)
+                  : ""
+              }
+              onChange={(e) => handleSet("ciplSubDateToClient", e.target.value)}
+              isRequired
+              className="max-w-md"
+            />
+            <Button
+              isLoading={isLoading}
+              type="submit"
+              color="primary"
+              className="mt-4"
+            >
+              Submit
+            </Button>
+          </form>
+        );
       default:
         return null;
     }
   };
+  console.log(status);
   const isDisabled = (): boolean => {
     switch (status) {
       case "Ready for Inspection":
+      case "Ready and Packed":
         return true;
       default:
         return false;

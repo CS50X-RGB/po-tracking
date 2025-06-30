@@ -69,4 +69,7 @@ export const progressUpdate = {
 
   //getNonAcceptedForClient
   nonQdApproved: "/progressUpdate/client/getNonApprove",
+  updateApproval: "/progressUpdate/client/approve/qd/",
+  //createcipl
+  manageCIPL: "/progressUpdate/cipl/create/",
 };

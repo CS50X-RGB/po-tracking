@@ -1,11 +1,15 @@
 import rawMaterial, { RMtracker } from "../models/rawMaterial";
 import underProcessModel from "../models/underProcessModel";
+import CiplDocument from "../models/ciplModel";
 import underSpecialProcessModel from "../models/underSpecialProcessModel";
 import finalInspectionModel, {
   inspectionTracker,
   isQualityCheckCompletedEnum,
 } from "../models/finalInspection";
-import { rawMaterialInterface } from "../../interfaces/rawMaterialInterface";
+import {
+  ciplInterface,
+  rawMaterialInterface,
+} from "../../interfaces/rawMaterialInterface";
 import ProgressUpdateModel, {
   DeliveryStatus,
 } from "../models/progressUpdateModel";
@@ -56,11 +60,14 @@ class ProgressUpdateRepo {
         const interval = Math.ceil(
           (exwDate.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24),
         );
-
+        console.log(exwDate, "EXW DAte");
+        console.log(orderDate, "ORDER DATE");
         const interval60Percent = Math.round(0.6 * interval) + 1;
-
+        console.log(interval60Percent, "Interval 60%");
         const thresholdDate = new Date(orderDate);
         thresholdDate.setDate(orderDate.getDate() + interval60Percent);
+        console.log(thresholdDate, "Threshold Date");
+
         rawMaterialData.thresholdDate = thresholdDate;
 
         if (rawMaterialData.actualDate) {
@@ -184,6 +191,28 @@ class ProgressUpdateRepo {
     }
   }
 
+  public async createCipl(
+    id: any,
+    dispatchedQty: number,
+    ciplDocument: ciplInterface,
+  ) {
+    try {
+      const newCipl = await CiplDocument.create(ciplDocument);
+      const newProgressUpdate = await ProgressUpdateModel.findOneAndUpdate(
+        { _id: id },
+        {
+          dispatchedQty,
+          cipl: newCipl?.toObject()._id,
+          delivery_status: DeliveryStatus.ReadyAndPacked,
+        },
+        { new: true },
+      ).lean();
+      return newProgressUpdate;
+    } catch (error) {
+      throw new Error(`Error while updating Progress Updating`);
+    }
+  }
+
   public async updateStatus(id: any, status: DeliveryStatus) {
     try {
       const update_qd_approve = await ProgressUpdateModel.findByIdAndUpdate(
@@ -191,6 +220,7 @@ class ProgressUpdateRepo {
         {
           delivery_status: status,
         },
+        { new: true },
       );
       return update_qd_approve;
     } catch (error) {
@@ -231,7 +261,41 @@ class ProgressUpdateRepo {
           "supplier  rawMaterial underProcess underSpecialProcess finalInspection",
         )
         .lean();
-      return items_by_status;
+      // Group progress updates by purchase order ID
+      const groupedByPO: Record<string, any> = {};
+      const ans: any[] = [];
+      //Iterating through every progressUpdate in the original flat array.
+      let purchaseOrder: any;
+      for (const update of items_by_status) {
+        //Grabs the purchaseOrder from the line item in the update.
+        if ("purchaseOrder" in (update.LI || {})) {
+          purchaseOrder = (update.LI as any).purchaseOrder;
+        }
+        //Skips the update if there's no purchase order.
+        if (!purchaseOrder) continue;
+
+        //Gets the unique purchase order ID as a string
+        const poId = purchaseOrder._id.toString();
+
+        //If this PO hasn’t been added yet to groupedByPO, create a new entry with:
+        if (!groupedByPO[poId]) {
+          groupedByPO[poId] = {
+            purchaseOrder,
+            progressUpdates: [],
+          };
+        }
+
+        //Add the current progress update to the progressUpdates array under the right PO.
+
+        groupedByPO[poId].progressUpdates.push(update);
+      }
+      for (const [poId, group] of Object.entries(groupedByPO)) {
+        ans.push({
+          poId,
+          ...group,
+        });
+      }
+      return ans;
     } catch (error) {
       throw new Error(`Error while getting Progress Update Items`);
     }
@@ -287,7 +351,7 @@ class ProgressUpdateRepo {
           ],
         })
         .populate(
-          "supplier  rawMaterial underProcess underSpecialProcess finalInspection",
+          "supplier  rawMaterial underProcess underSpecialProcess finalInspection cipl",
         )
 
         .lean();

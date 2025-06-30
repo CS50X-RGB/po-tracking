@@ -53,9 +53,11 @@ export interface IProgressUpdate extends Document {
   underSpecialProcess: mongoose.Schema.Types.ObjectId;
   finalInspection: mongoose.Schema.Types.ObjectId;
   LI: mongoose.Schema.Types.ObjectId;
+  cipl: mongoose.Schema.Types.ObjectId;
   supplier: mongoose.Schema.Types.ObjectId;
   qty: Number;
   openqty: Number;
+  dispatchedQty: Number;
   delivery_status: DeliveryStatus;
 }
 
@@ -77,7 +79,10 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "finalInspection",
     },
-
+    cipl: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ciplModel",
+    },
     LI: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "line_item",
@@ -87,6 +92,10 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "supplier",
       required: true,
+    },
+    dispatchedQty: {
+      type: Number,
+      default: 0,
     },
     qty: {
       type: Number,

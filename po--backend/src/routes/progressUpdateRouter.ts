@@ -25,6 +25,11 @@ router.post(
   progressUpdateservice.createFinalInspection.bind(progressUpdateservice),
 );
 
+router.post(
+  "/cipl/create/:progressUpdateId",
+  progressUpdateservice.createCipl.bind(progressUpdateservice),
+);
+
 router.get(
   "/all/supplier-progress",
   userMiddleware.verify.bind(userMiddleware),
@@ -42,6 +47,12 @@ router.get(
   progressUpdateservice.getProgressUpdatesNotApproved.bind(
     progressUpdateservice,
   ),
+);
+
+router.put(
+  "/client/approve/qd/:puId",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.updateQdByClient.bind(progressUpdateservice),
 );
 // router.patch(
 //   "/rawMaterial/update/:rawMaterialId",

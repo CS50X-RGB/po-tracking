@@ -10,3 +10,10 @@ export interface rawMaterialInterface {
   thresholdDate?: Date;
   RMtracker?: any;
 }
+
+export interface ciplInterface {
+  isCiplReady: String;
+  invoiceNo: String;
+  ciplSubDateToClient: Date;
+  ciplDocumentLink: String;
+}

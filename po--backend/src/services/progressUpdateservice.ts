@@ -21,6 +21,25 @@ class ProgressUpdateService {
     this.progressUpdateRepo = new ProgressUpdateRepo();
   }
 
+  public async createCipl(req: Request, res: Response) {
+    try {
+      const { progressUpdateId } = req.params;
+      const { dispatchedQty, ...rest }: any = req.body;
+      const progressUpdate = await this.progressUpdateRepo.createCipl(
+        progressUpdateId,
+        dispatchedQty,
+        rest,
+      );
+      return res.sendFormatted(progressUpdate, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating progress update",
+        "Progress Update Failed",
+        400,
+      );
+    }
+  }
+
   public async createRawMaterial(req: Request, res: Response) {
     try {
       //getting progress update id of line item thorugh params
@@ -424,6 +443,33 @@ class ProgressUpdateService {
       );
     } catch (error) {
       throw new Error(`Error while getting the progress updates not approved`);
+    }
+  }
+
+  public async updateQdByClient(req: Request, res: Response) {
+    try {
+      const { approved }: any = req.body;
+      const puId: any = req.params.puId;
+      let updatedPu: any = null;
+
+      if (approved === "Yes") {
+        updatedPu = await this.progressUpdateRepo.updateStatus(
+          puId,
+          DeliveryStatus.QDApproved,
+        );
+      } else if (approved === "No") {
+        updatedPu = await this.progressUpdateRepo.updateStatus(
+          puId,
+          DeliveryStatus.QDRejected,
+        );
+      }
+      return res.sendFormatted(updatedPu, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating progress update",
+        "Error while updating progress update",
+        400,
+      );
     }
   }
   // public async updateRawMaterial(req: Request, res: Response) {
