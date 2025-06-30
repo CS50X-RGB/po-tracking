@@ -1,5 +1,7 @@
 "use client";
+
 import React from "react";
+
 import CustomTable from "@/components/CustomTable";
 import { getData } from "@/core/api/apiHandler";
 import { accountRoutes, analyticsRoute } from "@/core/api/apiRoutes";
@@ -12,7 +14,14 @@ import OTDGaugeChart from "@/components/Graphs/OTDGaugeChart";
 
 export default function Page() {
   const [page, setPage] = useState<number>(1);
-  const { data: getAllUsers, isFetching } = useQuery({
+
+  const [total, setTotal] = useState<number>(1);
+
+  const {
+    data: getAllUsers,
+    isFetching,
+    isFetched,
+  } = useQuery({
     queryKey: ["get-all-users", page],
     queryFn: async () => {
       return await getData(
@@ -31,6 +40,11 @@ export default function Page() {
   });
 
   console.log(getAnalyticsData);
+  useEffect(() => {
+    if (isFetched) {
+      setTotal(Math.ceil(getAllUsers?.data.data.count / 5));
+    }
+  });
 
   const result = getAnalyticsData?.data?.data ?? null;
   console.log(result);
@@ -90,7 +104,7 @@ export default function Page() {
           loadingState={isFetching}
           page={page}
           setPage={setPage}
-          pages={1}
+          pages={total}
         />
       </div>
     );

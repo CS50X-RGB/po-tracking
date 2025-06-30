@@ -74,11 +74,13 @@ export default function PageProgress() {
 
         <div className="space-y-4">
           {progressUpdate.map((item: any, index: number) => {
+            console.log(item.delivery_status, "status");
             const lineItem = item?.LI;
             const rm = item?.rawMaterial;
             const up = item?.underProcess;
             const fi = item?.finalInspection;
             const usp = item?.underSpecialProcess;
+            const cipl = item?.cipl;
 
             return (
               <Card
@@ -124,16 +126,75 @@ export default function PageProgress() {
                       }
                     </h2>
                   </div>
+                  <div className="flex flex-row items-center justify-end w-full">
+                    <Chip
+                      size="lg"
+                      className="p-2 shadow-xl shadow-blue-800"
+                      color="secondary"
+                    >
+                      {item.delivery_status}
+                    </Chip>
+                  </div>
                 </CardBody>
                 <CardFooter className="flex flex-row gap-4">
-                  <ProgressUpdateModal
-                    type="RM"
-                    puId={item?._id}
-                    qty={item?.qty}
-                    value={rm}
-                    apiRoute={routes.manageRm}
-                  />
-                  {rm && (
+                  {rm ? (
+                    <div className="flex gap-4 p-3 flex-col bg-blue-800/10 rounded-xl justify-between items-center">
+                      <div className="flex flex-row items-center p-4 gap-4">
+                        <h1
+                          className={`px-3 py-1 rounded-full text-xs font-semibold
+                            ${
+                              rm.RMtracker !== "delayed"
+                                ? "bg-green-200 text-green-800"
+                                : "bg-red-200 text-red-800"
+                            }`}
+                        >
+                          Threshold Date{" "}
+                          {new Date(
+                            rm?.thresholdDate,
+                          ).toLocaleDateString()}{" "}
+                        </h1>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold
+                              ${
+                                rm.RMtracker !== "delayed"
+                                  ? "bg-green-200 text-green-800"
+                                  : "bg-red-200 text-red-800"
+                              }`}
+                        >
+                          {rm.RMtracker !== "delayed"
+                            ? "🟢 On Track"
+                            : "🔴 Delayed"}
+                        </span>
+                      </div>
+                      <ProgressUpdateModal
+                        type="RM"
+                        puId={item?._id}
+                        qty={item?.qty}
+                        value={rm}
+                        apiRoute={routes.manageRm}
+                        status={item.delivery_status}
+                      />
+                    </div>
+                  ) : (
+                    <ProgressUpdateModal
+                      type="RM"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={rm}
+                      apiRoute={routes.manageRm}
+                    />
+                  )}
+
+                  {rm ? (
+                    <ProgressUpdateModal
+                      type="UP"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={up}
+                      apiRoute={routes.manageUp}
+                      status={item.delivery_status}
+                    />
+                  ) : (
                     <ProgressUpdateModal
                       type="UP"
                       puId={item?._id}
@@ -142,7 +203,16 @@ export default function PageProgress() {
                       apiRoute={routes.manageUp}
                     />
                   )}
-                  {rm && (
+                  {rm ? (
+                    <ProgressUpdateModal
+                      type="USP"
+                      puId={item?._id}
+                      qty={item?.qty}
+                      value={usp}
+                      apiRoute={routes.manageUsp}
+                      status={item.delivery_status}
+                    />
+                  ) : (
                     <ProgressUpdateModal
                       type="USP"
                       puId={item?._id}
@@ -151,13 +221,64 @@ export default function PageProgress() {
                       apiRoute={routes.manageUsp}
                     />
                   )}
-                  {rm && (up || usp) && (
+                  {rm &&
+                    (up || usp) &&
+                    (fi ? (
+                      <div className="flex flex-col items-center bg-blue-800/10 rounded-xl p-3">
+                        <div className="flex flex-row items-center p-4 gap-4">
+                          <h1
+                            className={`px-3 py-1 rounded-full text-xs font-semibold
+                              ${
+                                fi.inspectionTracker !== "delayed"
+                                  ? "bg-green-200 text-green-800"
+                                  : "bg-red-200 text-red-800"
+                              }`}
+                          >
+                            Threshold Date{" "}
+                            {new Date(
+                              fi.inspectionThreshHoldDate,
+                            ).toLocaleDateString()}{" "}
+                          </h1>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold
+                                ${
+                                  fi.inspectionTracker !== "delayed"
+                                    ? "bg-green-200 text-green-800"
+                                    : "bg-red-200 text-red-800"
+                                }`}
+                          >
+                            {fi.inspectionTracker !== "delayed"
+                              ? "🟢 On Track"
+                              : "🔴 Delayed"}
+                          </span>
+                        </div>
+                        <ProgressUpdateModal
+                          type="FI"
+                          puId={item?._id}
+                          qty={item?.qty}
+                          value={fi}
+                          apiRoute={routes.manageFi}
+                          status={item.delivery_status}
+                        />
+                      </div>
+                    ) : (
+                      <ProgressUpdateModal
+                        type="FI"
+                        puId={item?._id}
+                        qty={item?.qty}
+                        value={fi}
+                        apiRoute={routes.manageFi}
+                      />
+                    ))}
+                  {!["New", "InProgress", "Ready for Inspection"].includes(
+                    item.delivery_status,
+                  ) && (
                     <ProgressUpdateModal
-                      type="FI"
+                      type="CIPL"
                       puId={item?._id}
                       qty={item?.qty}
-                      value={fi}
-                      apiRoute={routes.manageFi}
+                      value={cipl}
+                      apiRoute={routes.manageCIPL}
                     />
                   )}
                 </CardFooter>

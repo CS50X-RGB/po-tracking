@@ -65,7 +65,13 @@ export const progressUpdate = {
 
   manageUp: "/progressUpdate/underProcess/create/",
   manageFi: "/progressUpdate/finalInspection/create/",
-  manageUsp: "progressUpdate/underSpecialProcess/create/",
+  manageUsp: "/progressUpdate/underSpecialProcess/create/",
+
+  //getNonAcceptedForClient
+  nonQdApproved: "/progressUpdate/client/getNonApprove",
+  updateApproval: "/progressUpdate/client/approve/qd/",
+  //createcipl
+  manageCIPL: "/progressUpdate/cipl/create/",
 };
 
 export const analyticsRoute = {

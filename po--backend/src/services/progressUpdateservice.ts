@@ -7,7 +7,9 @@ import {
   rawMaterialSources,
 } from "../database/models/rawMaterial";
 import { String } from "aws-sdk/clients/pcs";
-import progressUpdateModel from "../database/models/progressUpdateModel";
+import progressUpdateModel, {
+  DeliveryStatus,
+} from "../database/models/progressUpdateModel";
 import { underProcessStatus } from "../database/models/underProcessModel";
 import { underSpecialProcessStatus } from "../database/models/underSpecialProcessModel";
 import { isQualityCheckCompletedEnum } from "../database/models/finalInspection";
@@ -17,6 +19,25 @@ class ProgressUpdateService {
 
   constructor() {
     this.progressUpdateRepo = new ProgressUpdateRepo();
+  }
+
+  public async createCipl(req: Request, res: Response) {
+    try {
+      const { progressUpdateId } = req.params;
+      const { dispatchedQty, ...rest }: any = req.body;
+      const progressUpdate = await this.progressUpdateRepo.createCipl(
+        progressUpdateId,
+        dispatchedQty,
+        rest,
+      );
+      return res.sendFormatted(progressUpdate, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating progress update",
+        "Progress Update Failed",
+        400,
+      );
+    }
   }
 
   public async createRawMaterial(req: Request, res: Response) {
@@ -409,6 +430,48 @@ class ProgressUpdateService {
     }
   }
 
+  public async getProgressUpdatesNotApproved(req: Request, res: Response) {
+    try {
+      const getProgressUpdateNotApproved =
+        await this.progressUpdateRepo.getItemsByStatus(
+          DeliveryStatus.ReadyForInspection,
+        );
+      return res.sendArrayFormatted(
+        getProgressUpdateNotApproved,
+        "Got Progress Update Not Updated",
+        200,
+      );
+    } catch (error) {
+      throw new Error(`Error while getting the progress updates not approved`);
+    }
+  }
+
+  public async updateQdByClient(req: Request, res: Response) {
+    try {
+      const { approved }: any = req.body;
+      const puId: any = req.params.puId;
+      let updatedPu: any = null;
+
+      if (approved === "Yes") {
+        updatedPu = await this.progressUpdateRepo.updateStatus(
+          puId,
+          DeliveryStatus.QDApproved,
+        );
+      } else if (approved === "No") {
+        updatedPu = await this.progressUpdateRepo.updateStatus(
+          puId,
+          DeliveryStatus.QDRejected,
+        );
+      }
+      return res.sendFormatted(updatedPu, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating progress update",
+        "Error while updating progress update",
+        400,
+      );
+    }
+  }
   // public async updateRawMaterial(req: Request, res: Response) {
   //   try {
   //     const { rawMaterialId } = req.params;

@@ -57,7 +57,7 @@ export default function CreateFom() {
       [type]: value,
     }));
   };
-  let list = useAsyncList({
+  let list: any = useAsyncList({
     async load({ filterText }) {
       let res = await fetch(
         `${localBackend}role/all/roles/?search=${filterText}`,
@@ -131,13 +131,16 @@ export default function CreateFom() {
             </Autocomplete>
             {user.role && user.role !== notAdmin && (
               <div className="flex flex-col gap-2">
-                <SearchInput
-                  label="Supplier"
-                  api={`${masterRoutes.getSupplier}`}
-                  type="supplier"
-                  state={user.supplier}
-                  setState={handleChange}
-                />
+                {list.items.find((item: any) => item.id === user.role)?.name ===
+                  "SUPPLIER" && (
+                  <SearchInput
+                    label="Supplier"
+                    api={`${masterRoutes.getSupplier}`}
+                    type="supplier"
+                    state={user.supplier}
+                    setState={handleChange}
+                  />
+                )}
                 <SearchInput
                   label="Client"
                   api={`${masterRoutes.getClient}`}

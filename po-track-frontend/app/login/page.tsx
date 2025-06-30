@@ -93,15 +93,18 @@ export default function App() {
       localStorage.setItem(currentUser, JSON.stringify(data.data.data));
       Cookies.set("nextToken", data.data.data.token);
       const permissions: any[] = [];
+
       if (data.data.data.permissions && data.data.data.permissions) {
         data?.data?.data?.permissions.map((p: any) => {
           const obj = {
             name: p.name,
             link: p.link,
           };
+
           permissions.push(obj);
         });
         let adminNav = {};
+
         if (data.data.data.role === "ADMIN") {
           adminNav = {
             name: "Permissions",
@@ -119,6 +122,7 @@ export default function App() {
         }
         permissions.push(adminNav);
         const links = permissions.map((p) => p.link);
+
         Cookies.set("allowedLinks", JSON.stringify(links), { path: "/" });
       }
       Cookies.set(currentUser, data.data.data.token);
@@ -128,6 +132,7 @@ export default function App() {
         className: "bg-blue-400",
       });
       const { role } = data.data.data;
+
       localStorage.setItem("ROLE", role);
       Cookies.set("userRole", role);
 
@@ -136,6 +141,8 @@ export default function App() {
         router.push(permissions[0].link);
       } else if (role === "SUPPLIER") {
         router.push("/supplier");
+      } else if (role === "CLIENT") {
+        router.push("/client");
       }
     },
     onError: (error: any) => {

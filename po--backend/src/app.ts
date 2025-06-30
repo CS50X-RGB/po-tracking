@@ -87,6 +87,10 @@ const permissions: PermissionCreate[] = [
     name: "Update Progress",
     link: "/supplier/progress",
   },
+  {
+    name: "Approve Quality",
+    link: "/client/quality",
+  },
 ];
 
 const paymentTerms: RoleInterface[] = [

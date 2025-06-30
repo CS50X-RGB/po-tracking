@@ -21,12 +21,23 @@ class UserMiddleware {
       // If role is ADMIN, client and supplier must not be present
       if (roleObj && roleObj.name !== "ADMIN") {
         // For non-admin roles, client and supplier are required
-        if (!client && !supplier) {
-          return res.sendError(
-            null,
-            "Client and Supplier are required for non-ADMIN users",
-            400,
-          );
+        if (roleObj.name == "SUPPLIER") {
+          if (!client && !supplier) {
+            return res.sendError(
+              "Client and supplie not there",
+              "Client and Supplier are required for non-ADMIN users",
+              400,
+            );
+          }
+        }
+        if (roleObj.name == "CLIENT") {
+          if (!client) {
+            return res.sendError(
+              "Client is required while creating client",
+              "Error while creating client",
+              400,
+            );
+          }
         }
       }
 
@@ -67,12 +78,18 @@ class UserMiddleware {
       const token = authHeader.split(" ")[1];
       const decoded: any = await verifyToken(token);
       if (decoded.role !== "ADMIN") {
-        req.user = {
+        let obj: any = {
           _id: decoded._id,
           name: decoded.name,
           client: decoded.client,
-          supplier: decoded.supplier,
         };
+        if (decoded.supplier) {
+          obj = {
+            ...obj,
+            supplier: decoded.supplier,
+          };
+        }
+        req.user = obj;
         next();
       } else {
         return res.sendError(null, "Your not Admin", 400);
