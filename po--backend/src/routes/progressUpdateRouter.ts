@@ -36,6 +36,13 @@ router.get(
   progressUpdateservice.getProgressUpdateSingle.bind(progressUpdateservice),
 );
 
+router.get(
+  "/client/getNonApprove",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.getProgressUpdatesNotApproved.bind(
+    progressUpdateservice,
+  ),
+);
 // router.patch(
 //   "/rawMaterial/update/:rawMaterialId",
 //   progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),

@@ -24,6 +24,7 @@ export interface IRawMaterial extends Document {
   received: number;
   planDate: Date;
   actualDate: Date;
+  thresholdDate: Date;
   RMstatus: rawMaterialStatus;
   RMtracker: RMtracker;
   LI: mongoose.Schema.Types.ObjectId;
@@ -47,6 +48,9 @@ const RawMaterialSchema = new Schema<IRawMaterial>(
       type: Date,
     },
     actualDate: {
+      type: Date,
+    },
+    thresholdDate: {
       type: Date,
     },
     RMstatus: {

@@ -17,18 +17,43 @@ import { postData } from "@/core/api/apiHandler";
 import { toast } from "sonner";
 import { queryClient } from "@/app/providers";
 
+export type DeliveryStatusType =
+  | "New"
+  | "InProgress"
+  | "Ready and Packed"
+  | "Ready for Inspection"
+  | "QD Approved"
+  | "QD Rejected"
+  | "Cleared for Shipping"
+  | "Delivery on Hold"
+  | "Defer Delivery"
+  | "CIPL Under Review"
+  | "CIPL Reviewed and Rejected"
+  | "CIPL Reviewed and Submitted To ADM"
+  | "CIPL Under ADM Review"
+  | "Awaiting Pickup"
+  | "Shortclosed"
+  | "Partially Dispatched"
+  | "Dispatched"
+  | "Preponed"
+  | "On Hold"
+  | "Deffered"
+  | "Cancelled";
+
 export default function ProgressUpdateModal({
   type,
   qty,
   puId,
   apiRoute,
   value,
+  status,
 }: {
   type: "RM" | "UP" | "USP" | "FI";
   qty: any;
   puId: any;
   apiRoute: any;
   value: any;
+  status?: DeliveryStatusType;
 }) {
   const { isOpen, onOpenChange, onOpen, onClose } = useDisclosure();
   const [state, setState] = useState<any>({});
@@ -557,10 +582,22 @@ export default function ProgressUpdateModal({
         return null;
     }
   };
+  const isDisabled = (): boolean => {
+    switch (status) {
+      case "Ready for Inspection":
+        return true;
+      default:
+        return false;
+    }
+  };
 
   return (
     <>
-      <Button className="bg-green-500" onPress={onOpen}>
+      <Button
+        isDisabled={isDisabled()}
+        className="bg-green-500"
+        onPress={onOpen}
+      >
         {" "}
         <span>
           {value ? "Update" : "Add"} {type}

@@ -7,7 +7,9 @@ import {
   rawMaterialSources,
 } from "../database/models/rawMaterial";
 import { String } from "aws-sdk/clients/pcs";
-import progressUpdateModel from "../database/models/progressUpdateModel";
+import progressUpdateModel, {
+  DeliveryStatus,
+} from "../database/models/progressUpdateModel";
 import { underProcessStatus } from "../database/models/underProcessModel";
 import { underSpecialProcessStatus } from "../database/models/underSpecialProcessModel";
 import { isQualityCheckCompletedEnum } from "../database/models/finalInspection";
@@ -409,6 +411,21 @@ class ProgressUpdateService {
     }
   }
 
+  public async getProgressUpdatesNotApproved(req: Request, res: Response) {
+    try {
+      const getProgressUpdateNotApproved =
+        await this.progressUpdateRepo.getItemsByStatus(
+          DeliveryStatus.ReadyForInspection,
+        );
+      return res.sendArrayFormatted(
+        getProgressUpdateNotApproved,
+        "Got Progress Update Not Updated",
+        200,
+      );
+    } catch (error) {
+      throw new Error(`Error while getting the progress updates not approved`);
+    }
+  }
   // public async updateRawMaterial(req: Request, res: Response) {
   //   try {
   //     const { rawMaterialId } = req.params;

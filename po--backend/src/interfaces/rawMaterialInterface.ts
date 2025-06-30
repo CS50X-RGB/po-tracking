@@ -7,4 +7,6 @@ export interface rawMaterialInterface {
   planDate: Date;
   actualDate: Date;
   RMstatus: string;
+  thresholdDate?: Date;
+  RMtracker?: any;
 }
