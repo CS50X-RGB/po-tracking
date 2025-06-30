@@ -1,12 +1,21 @@
 import mongoose, { Schema } from "mongoose";
 
-type DeliveryStatus =
+type DeliveryStatusType =
   | "New"
   | "InProgress"
   | "Ready and Packed"
   | "Ready for Inspection"
   | "QD Approved"
   | "QD Rejected";
+
+export enum DeliveryStatus {
+  New = "New",
+  InProgress = "InProgress",
+  ReadyAndPacked = "Ready and Packed",
+  ReadyForInspection = "Ready for Inspection",
+  QDApproved = "QD Approved",
+  QDRejected = "QD Rejected",
+}
 
 export interface IProgressUpdate extends Document {
   rawMaterial: mongoose.Schema.Types.ObjectId;
