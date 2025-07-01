@@ -9,14 +9,15 @@ import finalInspectionModel, {
 import {
   ciplInterface,
   rawMaterialInterface,
+  wmsInterface,
 } from "../../interfaces/rawMaterialInterface";
 import ProgressUpdateModel, {
   DeliveryStatus,
 } from "../models/progressUpdateModel";
-import LineItemModel from "../models/lineItemModel";
 import { underProcessInterface } from "../../interfaces/underProcessInterface";
 import { underSpecialProcessInterface } from "../../interfaces/underSpecialProcessInterface";
 import { finalInspectionInterface } from "../../interfaces/finalInspection";
+import WmsModel from "../models/wmsModel";
 
 class ProgressUpdateRepo {
   //function to create a progress upate entiry for a line item
@@ -34,6 +35,34 @@ class ProgressUpdateRepo {
     } catch (error) {
       console.error(error, "Error creating ProgressUpdate");
       throw new Error("Failed to create ProgressUpdate");
+    }
+  }
+  public async finalStatus(id: string, date_dispatched: any) {
+    try {
+      const currentPU = await ProgressUpdateModel.findById(id);
+
+      if (!currentPU) {
+        throw new Error("Progress update not found");
+      }
+
+      let newStatus = null;
+      if (currentPU.openqty === currentPU.dispatchedQty) {
+        newStatus = DeliveryStatus.Dispatched;
+      }
+
+      const updatedPU = await ProgressUpdateModel.findByIdAndUpdate(
+        id,
+        {
+          dispatched_date: date_dispatched,
+          delivery_status: newStatus,
+        },
+        { new: true },
+      );
+
+      return updatedPU;
+    } catch (error) {
+      console.error("Error while updating final status:", error);
+      throw new Error("Error while updating final status");
     }
   }
 
@@ -228,11 +257,13 @@ class ProgressUpdateRepo {
     }
   }
 
-  public async getItemsByStatus(status: DeliveryStatus) {
+  public async getItemsByStatus(status: DeliveryStatus | DeliveryStatus[]) {
     try {
-      const items_by_status = await ProgressUpdateModel.find({
-        delivery_status: status,
-      })
+      const query = Array.isArray(status)
+        ? { delivery_status: { $in: status } }
+        : { delivery_status: status };
+      console.log(query, "query");
+      const items_by_status = await ProgressUpdateModel.find(query)
         .populate({
           path: "LI",
           populate: [
@@ -258,7 +289,7 @@ class ProgressUpdateRepo {
           ],
         })
         .populate(
-          "supplier  rawMaterial underProcess underSpecialProcess finalInspection",
+          "supplier  rawMaterial underProcess underSpecialProcess finalInspection cipl wms",
         )
         .lean();
       // Group progress updates by purchase order ID
@@ -484,7 +515,51 @@ class ProgressUpdateRepo {
       throw new Error("Failed to update underProcess");
     }
   }
+  public async createWMS(id: any, wms: wmsInterface) {
+    try {
+      const newWMS = await WmsModel.create(wms);
+      console.log(id, wms, "in function repo");
+      await ProgressUpdateModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            wms: newWMS._id,
+          },
+          delivery_status: DeliveryStatus.ClearedForShipping,
+        },
+        {
+          new: true,
+        },
+      );
 
+      // 3. Return the newly created WMS object
+      return newWMS.toObject();
+    } catch (error) {
+      throw new Error(`Error while creating WMS: ${error}`);
+    }
+  }
+
+  public async updateDeliveryDefer(
+    id: any,
+    tentative_planned_date: any,
+    status: DeliveryStatus,
+  ) {
+    try {
+      const progressUpdate = await ProgressUpdateModel.findByIdAndUpdate(
+        id,
+        {
+          tentative_planned_date,
+          delivery_status: status,
+        },
+        {
+          new: true,
+        },
+      ).lean();
+      return progressUpdate;
+    } catch (error) {
+      throw new Error(`Error while updating progress Update`);
+    }
+  }
   //creae Final inspection
   public async createFinalInspection(
     id: any,

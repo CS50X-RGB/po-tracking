@@ -33,11 +33,11 @@ export enum DeliveryStatus {
   ClearedForShipping = "Cleared for Shipping",
   DeliveryOnHold = "Delivery on Hold",
   DeferDelivery = "Defer Delivery",
-  CIPLUnderReview = "CIPL Under Review",
-  CIPLReviewedAndRejected = "CIPL Reviewed and Rejected",
-  CIPLReviewedAndSubmittedToADM = "CIPL Reviewed and Submitted To ADM",
-  CIPLUnderADMReview = "CIPL Under ADM Review",
-  AwaitingPickUp = "Awaiting Pickup",
+  CIPLUnderReview = "CIPLUnderReview",
+  CIPLReviewedAndRejected = "CIPLReviewedAndRejected",
+  CIPLReviewedAndSubmittedToADM = "CIPLReviewedAndSubmittedToADM",
+  CIPLUnderADMReview = "CIPLUnderADM Review",
+  AwaitingPickUp = "AwaitingPickUp",
   Shortclosed = "Shortclosed",
   PartiallyDispatched = "Partially Dispatched",
   Dispatched = "Dispatched",
@@ -54,11 +54,14 @@ export interface IProgressUpdate extends Document {
   finalInspection: mongoose.Schema.Types.ObjectId;
   LI: mongoose.Schema.Types.ObjectId;
   cipl: mongoose.Schema.Types.ObjectId;
+  wms: mongoose.Schema.Types.ObjectId;
   supplier: mongoose.Schema.Types.ObjectId;
   qty: Number;
   openqty: Number;
+  tentative_planned_date: Date;
   dispatchedQty: Number;
   delivery_status: DeliveryStatus;
+  dispatched_date: Date;
 }
 
 const ProgressUpdateSchema = new Schema<IProgressUpdate>(
@@ -78,6 +81,13 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
     finalInspection: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "finalInspection",
+    },
+    tentative_planned_date: {
+      type: "Date",
+    },
+    wms: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "wms_model",
     },
     cipl: {
       type: mongoose.Schema.Types.ObjectId,
@@ -100,6 +110,9 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
     qty: {
       type: Number,
       required: true,
+    },
+    dispatched_date: {
+      type: Date,
     },
     openqty: {
       type: Number,

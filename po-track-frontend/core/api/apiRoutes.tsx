@@ -72,6 +72,13 @@ export const progressUpdate = {
   updateApproval: "/progressUpdate/client/approve/qd/",
   //createcipl
   manageCIPL: "/progressUpdate/cipl/create/",
+  //manageDelivery
+  mangeDelivery: "/progressUpdate/client/getDelivery",
+  //maangeWMS
+  managePostDelivery: "/progressUpdate/wms/create/",
+  //getCIPL
+  manageCIPLGet: "/progressUpdate/client/getCIPL",
+  updateCIPL: "/progressUpdate/client/update/cipl/",
 };
 
 export const analyticsRoute = {

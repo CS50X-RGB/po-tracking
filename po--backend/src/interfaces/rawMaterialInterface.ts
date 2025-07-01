@@ -17,3 +17,8 @@ export interface ciplInterface {
   ciplSubDateToClient: Date;
   ciplDocumentLink: String;
 }
+
+export interface wmsInterface {
+  wmrefNo: string;
+  modeOfTransport: any;
+}

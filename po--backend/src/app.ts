@@ -91,6 +91,14 @@ const permissions: PermissionCreate[] = [
     name: "Approve Quality",
     link: "/client/quality",
   },
+  {
+    name: "Delivery Management",
+    link: "/client/delivery",
+  },
+  {
+    name: "CIPL Management",
+    link: "/client/cipl",
+  },
 ];
 
 const paymentTerms: RoleInterface[] = [
