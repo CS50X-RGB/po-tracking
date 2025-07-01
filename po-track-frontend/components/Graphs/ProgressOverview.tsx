@@ -146,7 +146,7 @@ export default function DeliveryStatusPieChart({
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            activeIndex={activeIndex}
+            //activeIndex={activeIndex}
             activeShape={renderActiveShape}
             data={data}
             cx="50%"

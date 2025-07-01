@@ -1,5 +1,6 @@
 import mongoose, { ObjectId } from "mongoose";
 import PurchaseOrderModel from "../models/purchaseOrderModel";
+import progressUpdateModel from "../models/progressUpdateModel";
 import lineItemModel from "../models/lineItemModel";
 import { Console } from "console";
 
@@ -55,15 +56,21 @@ class AdminDashboardRepo {
         { $match: { "lineItemDocs.supplier_readliness_date": { $ne: null } } },
         {
           $group: {
+            _id: "$_id", // Group by PO _id
+            poTotal: { $sum: "$lineItemDocs.total_cost" }, // or appropriate PO-level value
+          },
+        },
+        {
+          $group: {
             _id: null,
-            openPOValue: { $sum: "$lineItemDocs.total_cost" },
-            openCount: { $sum: 1 },
+            totalOpenPOValue: { $sum: "$poTotal" },
+            openCount: { $sum: 1 }, // count of distinct POs
           },
         },
       ]);
 
       const openCount = openPOAgg[0]?.openCount ?? 0;
-      const openPOValue = openPOAgg[0]?.openPOValue ?? 0;
+      const openPOValue = openPOAgg[0]?.totalOpenPOValue ?? 0;
       console.log({ openCount, openPOValue });
       return { openCount, openPOValue };
     } catch (error) {
@@ -77,9 +84,7 @@ class AdminDashboardRepo {
       const totalLineItem = await lineItemModel.countDocuments();
       console.log("total line item", totalLineItem);
 
-      const openLineItem = await lineItemModel.countDocuments({
-        supplier_readliness_date: { $ne: null },
-      });
+      const openLineItem = await progressUpdateModel.countDocuments();
       console.log("open line item", openLineItem);
 
       return { totalLineItem, openLineItem };
@@ -88,6 +93,27 @@ class AdminDashboardRepo {
       throw new Error(`Erron in getting LI data`);
     }
   }
+
+  // public async getNonAcceptedLineItem() {
+  //   try {
+  //     const filter = {
+  //       purchaseOrder: poId,
+  //       supplier: supplierId,
+  //       supplier_readliness_date: { $exists: true, $ne: null },
+  //     };
+
+  //     const allLineItems = await lineItemModel
+  //       .find(filter)
+  //       .populate("uom partNumber")
+  //       .lean();
+
+  //     const count = await lineItemModel.countDocuments(filter);
+
+  //     return { count };
+  //   } catch (error) {
+  //     throw new Error(`Error while getting all line items: ${error}`);
+  //   }
+  // }
 }
 
 export default AdminDashboardRepo;
