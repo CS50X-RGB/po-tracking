@@ -94,26 +94,43 @@ class AdminDashboardRepo {
     }
   }
 
-  // public async getNonAcceptedLineItem() {
-  //   try {
-  //     const filter = {
-  //       purchaseOrder: poId,
-  //       supplier: supplierId,
-  //       supplier_readliness_date: { $exists: true, $ne: null },
-  //     };
+  //get Line Item Dispatched data
 
-  //     const allLineItems = await lineItemModel
-  //       .find(filter)
-  //       .populate("uom partNumber")
-  //       .lean();
+  public async getLIDispatchedData() {
+    try {
+      const count = await progressUpdateModel.countDocuments({
+        DeliveryStatus: "Dispatched",
+      });
+      const valueAgg = await progressUpdateModel.aggregate([
+        {
+          $match: { delivery_status: "Dispatched" },
+        },
 
-  //     const count = await lineItemModel.countDocuments(filter);
-
-  //     return { count };
-  //   } catch (error) {
-  //     throw new Error(`Error while getting all line items: ${error}`);
-  //   }
-  // }
+        {
+          $lookup: {
+            from: "line_items",
+            localField: "LI",
+            foreignField: "_id",
+            as: "lineItemDocs",
+          },
+        },
+        {
+          $unwind: "$lineItemDocs",
+        },
+        {
+          $group: {
+            _id: null,
+            totalDispatchedValue: { $sum: "$lineItemDocs.total_cost" },
+          },
+        },
+      ]);
+      const value = valueAgg[0]?.totalDispatchedValue ?? 0;
+      return { count, value };
+    } catch (error) {
+      console.log("Error getting total Dispatched LI Data", error);
+      throw new Error(`Erron in getting Dispatched LI Data`);
+    }
+  }
 }
 
 export default AdminDashboardRepo;

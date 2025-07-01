@@ -105,9 +105,13 @@ export default function Page() {
             />
             <AnalyticsCard
               title1="Line Items Dispatched"
-              value1="NA"
+              value1={result.dispatchedLIData.count || 0}
               title2="Value"
-              value2="NA"
+              value2={new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumFractionDigits: 0,
+              }).format(result.dispatchedLIData.count || 0)}
             />
           </div>
           <div className="right-div w-1/2 grid grid-cols-2 gap-4 p-2 ">
