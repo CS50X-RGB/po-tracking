@@ -13,12 +13,14 @@ class AdminDashboardService {
       const totalPOvalue = await this.adminDashboard.getTotalPOValue();
       const openPOData = await this.adminDashboard.getOpenPO();
       const lineItemData = await this.adminDashboard.getlineItem();
+      const dispatchedLIData = await this.adminDashboard.getLIDispatchedData();
 
       const result = {
         totalPOCount: totalCount,
         totalPOValue: totalPOvalue,
         openPOData: openPOData,
         lineItemData: lineItemData,
+        dispatchedLIData: dispatchedLIData,
       };
 
       //console.log(totalCount);
