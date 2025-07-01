@@ -11,8 +11,25 @@ import { Card, CardBody, CardHeader, Spinner } from "@heroui/react";
 import AnalyticsCard from "@/components/Card/AnalyticsCard";
 import AnalyticsGraphCard from "@/components/Card/AnalyticsGraphCars";
 import OTDGaugeChart from "@/components/Graphs/OTDGaugeChart";
+import DeliveryStatusPieChart from "@/components/Graphs/ProgressOverview";
 
 export default function Page() {
+  const statuses = [
+    "New",
+    "InProgress",
+    "Ready and Packed",
+    "Partially Dispatched",
+    "Dispatched",
+    "Preponed",
+    "Cancelled",
+  ];
+
+  //get dummy value for each status
+  const deliveryStatusData = statuses.map((status) => ({
+    name: status,
+    value: Math.floor(Math.random() * 50) + 1,
+  }));
+
   const [page, setPage] = useState<number>(1);
 
   const [total, setTotal] = useState<number>(1);
@@ -94,8 +111,14 @@ export default function Page() {
             />
           </div>
           <div className="right-div w-1/2 grid grid-cols-2 gap-4 p-2 ">
-            <AnalyticsGraphCard title="Progress overview" chart="chart" />
-            <AnalyticsGraphCard title="OTD Graph" chart="chart" />
+            <AnalyticsGraphCard
+              title="Progress Overview"
+              chart={<DeliveryStatusPieChart data={deliveryStatusData} />}
+            />
+            <AnalyticsGraphCard
+              title="OTD Graph"
+              chart={<OTDGaugeChart percentage={85} />}
+            />
           </div>
         </div>
         <h1 className="font-bold text-xl">View Users</h1>
