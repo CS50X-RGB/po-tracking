@@ -7,6 +7,7 @@ import masterRouter from "./masterDataRoute";
 import poRouter from "./purchaseOrderRoute";
 import progressUpdateRouter from "./progressUpdateRouter";
 import adminAnalyticsRouter from "./adminAnalyticsRoute";
+import supplierAnalyticsRouter from "./supplierAnalyticsRoute";
 
 const router = Router();
 const version = "v1";
@@ -21,4 +22,5 @@ router.use(`${prefix}/master`, masterRouter);
 router.use(`${prefix}/po`, poRouter);
 router.use(`${prefix}/progressUpdate`, progressUpdateRouter);
 router.use(`${prefix}/adminAnalytics`, adminAnalyticsRouter);
+router.use(`${prefix}/supplierAnalytics`, supplierAnalyticsRouter);
 export default router;
