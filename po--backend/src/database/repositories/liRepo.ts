@@ -1,4 +1,3 @@
-import { String } from "aws-sdk/clients/ssmquicksetup";
 import { LineItemCreate } from "../../interfaces/lineItemInterface";
 import LineItemModel from "../models/lineItemModel";
 import ProgressUpdateRepo from "./progressUpdateRepo";

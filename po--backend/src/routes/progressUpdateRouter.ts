@@ -89,6 +89,12 @@ router.put(
   userMiddleware.verify.bind(userMiddleware),
   progressUpdateservice.updatePu.bind(progressUpdateservice),
 );
+
+router.get(
+  "/client/logistics/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.getLogistics.bind(progressUpdateservice),
+);
 // router.patch(
 //   "/rawMaterial/update/:rawMaterialId",
 //   progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),

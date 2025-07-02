@@ -48,7 +48,10 @@ export default function DeliveryPage() {
   const handleSet = (type: any, value: any) => {
     setState((prev: any) => ({
       ...prev,
-      [type]: type === "tentative_planned_date" ? new Date(value) : value,
+      [type]:
+        type === "tentative_planned_date" || type === "plannedPickupDate"
+          ? new Date(value)
+          : value,
     }));
   };
 
@@ -215,7 +218,14 @@ export default function DeliveryPage() {
                     <Input
                       label="WMSRefNo"
                       value={state.wmrefNo}
+                      isRequired
                       onValueChange={(e) => handleSet("wmrefNo", e)}
+                    />
+                    <Input
+                      label="Forwarder Name"
+                      value={state.forwarder}
+                      isRequired
+                      onValueChange={(e) => handleSet("forwarder", e)}
                     />
                     <Select
                       onChange={(e: any) =>
@@ -229,6 +239,23 @@ export default function DeliveryPage() {
                         <SelectItem key={mode.key}>{mode.label}</SelectItem>
                       ))}
                     </Select>
+                    <Input
+                      type="date"
+                      label="Planned Pick Up Date"
+                      value={
+                        state.plannedPickupDate
+                          ? new Date(state.plannedPickupDate)
+                              .toISOString()
+                              .substring(0, 10)
+                          : ""
+                      }
+                      onChange={(e) =>
+                        handleSet("plannedPickupDate", e.target.value)
+                      }
+                      isRequired
+                      className="max-w-md"
+                    />
+                    {/* plannedPickupDate */}
                     <Button color="primary" type="submit">
                       Submit
                     </Button>

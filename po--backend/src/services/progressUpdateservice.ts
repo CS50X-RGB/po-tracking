@@ -12,12 +12,14 @@ import progressUpdateModel, {
 import { underProcessStatus } from "../database/models/underProcessModel";
 import { underSpecialProcessStatus } from "../database/models/underSpecialProcessModel";
 import { isQualityCheckCompletedEnum } from "../database/models/finalInspection";
+import LogisticsRepo from "../database/repositories/logisticsRepo";
 
 class ProgressUpdateService {
   private progressUpdateRepo: ProgressUpdateRepo;
-
+  private logisticsRepo: LogisticsRepo;
   constructor() {
     this.progressUpdateRepo = new ProgressUpdateRepo();
+    this.logisticsRepo = new LogisticsRepo();
   }
 
   public async createCipl(req: Request, res: Response) {
@@ -483,11 +485,20 @@ class ProgressUpdateService {
   public async updatePu(req: Request, res: Response) {
     try {
       const { puId }: any = req.params;
+      let updatedPu = null;
       const { dispatched_date }: any = req.body;
-      const updatedPu = await this.progressUpdateRepo.finalStatus(
-        puId,
-        dispatched_date,
-      );
+      if (req.body.status) {
+        updatedPu = await this.progressUpdateRepo.finalStatus(
+          puId,
+          dispatched_date,
+          req.body.status,
+        );
+      } else {
+        updatedPu = await this.progressUpdateRepo.finalStatus(
+          puId,
+          dispatched_date,
+        );
+      }
       return res.sendFormatted(updatedPu, "Updated Progress Update", 200);
     } catch (error) {
       return res.sendError(
@@ -571,6 +582,20 @@ class ProgressUpdateService {
       return res.sendError(
         "Error while updating progress update",
         "Error while updating progress update",
+        400,
+      );
+    }
+  }
+
+  public async getLogistics(req: Request, res: Response) {
+    try {
+      const { page, offset }: any = req.params;
+      const logistics = await this.logisticsRepo.getLogistics(page, offset);
+      return res.sendArrayFormatted(logistics, "Got Logistics", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while getting logistics`,
+        "Logistics Error",
         400,
       );
     }

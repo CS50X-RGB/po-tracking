@@ -18,9 +18,14 @@ import { underProcessInterface } from "../../interfaces/underProcessInterface";
 import { underSpecialProcessInterface } from "../../interfaces/underSpecialProcessInterface";
 import { finalInspectionInterface } from "../../interfaces/finalInspection";
 import WmsModel from "../models/wmsModel";
+import LineItemModel from "../models/lineItemModel";
+import LogisticsRepo from "./logisticsRepo";
 
 class ProgressUpdateRepo {
-  //function to create a progress upate entiry for a line item
+  private logisticsRepo: LogisticsRepo;
+  constructor() {
+    this.logisticsRepo = new LogisticsRepo();
+  }
   public async createProgressUpdate(data: {
     LI: string;
     supplier: any;
@@ -37,28 +42,45 @@ class ProgressUpdateRepo {
       throw new Error("Failed to create ProgressUpdate");
     }
   }
-  public async finalStatus(id: string, date_dispatched: any) {
+  public async finalStatus(id: string, date_dispatched: any, status?: any) {
     try {
-      const currentPU = await ProgressUpdateModel.findById(id);
+      const currentPU = await ProgressUpdateModel.findById(id).populate("LI");
 
       if (!currentPU) {
         throw new Error("Progress update not found");
       }
 
-      let newStatus = null;
-      if (currentPU.openqty === currentPU.dispatchedQty) {
-        newStatus = DeliveryStatus.Dispatched;
-      }
+      const isFullyDispatched =
+        Number(currentPU.qty) === Number(currentPU.dispatchedQty);
 
+      const newStatus = isFullyDispatched
+        ? DeliveryStatus.Dispatched
+        : (status ?? currentPU.delivery_status);
+      const lineItemTotalDispatched = Number(currentPU.dispatchedQty);
+      const lineItemUpdate = await LineItemModel.updateOne(
+        { _id: currentPU.LI },
+        [
+          {
+            $set: {
+              value_delivered: {
+                $multiply: [lineItemTotalDispatched, "$unit_cost"],
+              },
+            },
+          },
+        ],
+      );
       const updatedPU = await ProgressUpdateModel.findByIdAndUpdate(
         id,
         {
           dispatched_date: date_dispatched,
           delivery_status: newStatus,
+          openqty: isFullyDispatched
+            ? 0
+            : Number(currentPU.qty) - Number(currentPU.dispatchedQty),
         },
         { new: true },
       );
-
+      const createLogistics = await this.logisticsRepo.createLogistics(id);
       return updatedPU;
     } catch (error) {
       console.error("Error while updating final status:", error);
@@ -89,8 +111,6 @@ class ProgressUpdateRepo {
         const interval = Math.ceil(
           (exwDate.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24),
         );
-        console.log(exwDate, "EXW DAte");
-        console.log(orderDate, "ORDER DATE");
         const interval60Percent = Math.round(0.6 * interval) + 1;
         console.log(interval60Percent, "Interval 60%");
         const thresholdDate = new Date(orderDate);
@@ -180,7 +200,12 @@ class ProgressUpdateRepo {
           select: "order_date",
         },
       });
-
+      if (
+        progressUpdate?.delivery_status === DeliveryStatus.PartiallyDispatched
+      ) {
+        progressUpdate.$set("delivery_status", DeliveryStatus.InProgress);
+        await progressUpdate.save();
+      }
       if (
         progressUpdate &&
         progressUpdate.LI?.exw_date &&
@@ -437,9 +462,14 @@ class ProgressUpdateRepo {
     data: Partial<underProcessInterface>,
   ) {
     try {
-      return await underProcessModel.findByIdAndUpdate(underProcessId, data, {
-        new: true,
-      });
+      const updateProcess = await underProcessModel.findByIdAndUpdate(
+        underProcessId,
+        data,
+        {
+          new: true, // returns the updated document
+        },
+      );
+      return updateProcess;
     } catch (error) {
       console.error(error, "Error updating underProcess");
       throw new Error("Failed to update underProcess");
@@ -528,7 +558,7 @@ class ProgressUpdateRepo {
           delivery_status: DeliveryStatus.ClearedForShipping,
         },
         {
-          new: true,
+          new: true, // If found and currently InProgress, update to ReadyAndPacked
         },
       );
 
@@ -616,6 +646,17 @@ class ProgressUpdateRepo {
     data: Partial<finalInspectionInterface>,
   ) {
     try {
+      const progressUpdate = await ProgressUpdateModel.findOne({
+        finalInspection: finalInspectionId,
+      });
+
+      if (
+        progressUpdate &&
+        progressUpdate.delivery_status === DeliveryStatus.InProgress
+      ) {
+        progressUpdate.delivery_status = DeliveryStatus.ReadyAndPacked;
+        await progressUpdate.save();
+      }
       return await finalInspectionModel.findByIdAndUpdate(
         finalInspectionId,
         data,
