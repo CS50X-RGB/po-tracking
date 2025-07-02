@@ -668,11 +668,11 @@ export default function ProgressUpdateModal({
         return null;
     }
   };
-  console.log(status);
   const isDisabled = (): boolean => {
     switch (status) {
       case "Ready for Inspection":
       case "Ready and Packed":
+      case "Defer Delivery":
         return true;
       default:
         return false;
@@ -683,12 +683,14 @@ export default function ProgressUpdateModal({
     <>
       <Button
         isDisabled={isDisabled()}
-        className="bg-green-500"
+        className={`${status === "Dispatched" ? "bg-blue-500" : "bg-green-500"}`}
         onPress={onOpen}
       >
         {" "}
         <span>
-          {value ? "Update" : "Add"} {type}
+          {status === "Dispatched"
+            ? `View ${type}`
+            : `${value ? "Update" : "Add"} ${type}`}
         </span>
         <BadgePlus size={20} />
       </Button>

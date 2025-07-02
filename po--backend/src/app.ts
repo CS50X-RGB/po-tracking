@@ -99,6 +99,10 @@ const permissions: PermissionCreate[] = [
     name: "CIPL Management",
     link: "/client/cipl",
   },
+  {
+    name: "Logistics Management",
+    link: "/client/logistics",
+  },
 ];
 
 const paymentTerms: RoleInterface[] = [

@@ -79,6 +79,10 @@ export const progressUpdate = {
   //getCIPL
   manageCIPLGet: "/progressUpdate/client/getCIPL",
   updateCIPL: "/progressUpdate/client/update/cipl/",
+  //Final_dispatched
+  dispatchLineItem: "/progressUpdate/update/final/",
+  //Logistics
+  getLogisitcs: "/progressUpdate/client/logistics/",
 };
 
 export const analyticsRoute = {

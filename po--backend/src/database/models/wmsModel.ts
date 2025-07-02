@@ -8,6 +8,8 @@ export enum ModeOfTransportEnum {
 export interface IWmsModel extends Document {
   wmrefNo: string;
   modeOfTransport: ModeOfTransportEnum;
+  forwarder: string;
+  plannedPickupDate: Date;
 }
 
 const wmsSchema = new Schema<IWmsModel>({
@@ -18,6 +20,14 @@ const wmsSchema = new Schema<IWmsModel>({
   modeOfTransport: {
     type: String,
     enum: Object.values(ModeOfTransportEnum),
+    required: true,
+  },
+  forwarder: {
+    type: String,
+    required: true,
+  },
+  plannedPickupDate: {
+    type: Date,
     required: true,
   },
 });

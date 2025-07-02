@@ -21,4 +21,6 @@ export interface ciplInterface {
 export interface wmsInterface {
   wmrefNo: string;
   modeOfTransport: any;
+  forwarder: string;
+  plannedPickupDate: any;
 }
