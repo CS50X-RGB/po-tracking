@@ -14,6 +14,8 @@ class AdminDashboardService {
       const openPOData = await this.adminDashboard.getOpenPO();
       const lineItemData = await this.adminDashboard.getlineItem();
       const dispatchedLIData = await this.adminDashboard.getLIDispatchedData();
+      const deliveryStatusData =
+        await this.adminDashboard.getDeliveryStatusdata();
 
       const result = {
         totalPOCount: totalCount,
@@ -21,6 +23,7 @@ class AdminDashboardService {
         openPOData: openPOData,
         lineItemData: lineItemData,
         dispatchedLIData: dispatchedLIData,
+        deliveryStatusData: deliveryStatusData,
       };
 
       //console.log(totalCount);

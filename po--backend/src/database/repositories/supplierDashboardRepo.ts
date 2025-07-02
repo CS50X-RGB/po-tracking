@@ -37,6 +37,23 @@ class SupplierDashboardRepo {
       throw new Error("Error fetching supplier PO data");
     }
   }
+
+  // public async getOpenPOData(supplierId: mongoose.Types.ObjectId) {
+  //   try{
+  //     const OpenPODataAgg=await lineItemModel.aggregate([
+  //       {
+  //         $match:{supplier: supplierId}
+  //       }
+  //       {
+
+  //       }
+  //     ])
+  //   }
+  //   catch(error){
+  //     console.error("Error fetching supplier Open PO data", error);
+  //     throw new Error("Error fetching supplier Open PO data");
+  //   }
+  // }
 }
 
 export default SupplierDashboardRepo;
