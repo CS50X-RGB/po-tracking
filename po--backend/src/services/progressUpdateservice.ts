@@ -6,17 +6,39 @@ import {
   rawMaterialStatus,
   rawMaterialSources,
 } from "../database/models/rawMaterial";
-import { String } from "aws-sdk/clients/pcs";
-import progressUpdateModel from "../database/models/progressUpdateModel";
+import progressUpdateModel, {
+  DeliveryStatus,
+} from "../database/models/progressUpdateModel";
 import { underProcessStatus } from "../database/models/underProcessModel";
 import { underSpecialProcessStatus } from "../database/models/underSpecialProcessModel";
 import { isQualityCheckCompletedEnum } from "../database/models/finalInspection";
+import LogisticsRepo from "../database/repositories/logisticsRepo";
 
 class ProgressUpdateService {
   private progressUpdateRepo: ProgressUpdateRepo;
-
+  private logisticsRepo: LogisticsRepo;
   constructor() {
     this.progressUpdateRepo = new ProgressUpdateRepo();
+    this.logisticsRepo = new LogisticsRepo();
+  }
+
+  public async createCipl(req: Request, res: Response) {
+    try {
+      const { progressUpdateId } = req.params;
+      const { dispatchedQty, ...rest }: any = req.body;
+      const progressUpdate = await this.progressUpdateRepo.createCipl(
+        progressUpdateId,
+        dispatchedQty,
+        rest,
+      );
+      return res.sendFormatted(progressUpdate, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating progress update",
+        "Progress Update Failed",
+        400,
+      );
+    }
   }
 
   public async createRawMaterial(req: Request, res: Response) {
@@ -128,6 +150,41 @@ class ProgressUpdateService {
         "Failed to create raw material",
         500,
       );
+    }
+  }
+
+  public async managePostDelivery(req: Request, res: Response) {
+    try {
+      const puId = req.params.puId;
+      const { action, ...obj }: any = req.body;
+      console.log(action, obj, "body", puId);
+      let progressUpdate;
+
+      switch (action) {
+        case "1":
+          progressUpdate = await this.progressUpdateRepo.createWMS(puId, obj);
+          break;
+
+        case "2":
+          progressUpdate = await this.progressUpdateRepo.updateDeliveryDefer(
+            puId,
+            obj.tentative_planned_date,
+            DeliveryStatus.DeliveryOnHold,
+          );
+          break;
+
+        default:
+          progressUpdate = await this.progressUpdateRepo.updateDeliveryDefer(
+            puId,
+            obj.tentative_planned_date,
+            DeliveryStatus.DeferDelivery,
+          );
+          break;
+      }
+
+      return res.sendFormatted(progressUpdate, "Updated Progress Update", 200);
+    } catch (error) {
+      throw new Error(`Error while managing post delivery: ${error}`);
     }
   }
 
@@ -409,6 +466,140 @@ class ProgressUpdateService {
     }
   }
 
+  public async getProgressUpdatesNotApproved(req: Request, res: Response) {
+    try {
+      const getProgressUpdateNotApproved =
+        await this.progressUpdateRepo.getItemsByStatus(
+          DeliveryStatus.ReadyForInspection,
+        );
+      return res.sendArrayFormatted(
+        getProgressUpdateNotApproved,
+        "Got Progress Update Not Updated",
+        200,
+      );
+    } catch (error) {
+      throw new Error(`Error while getting the progress updates not approved`);
+    }
+  }
+
+  public async updatePu(req: Request, res: Response) {
+    try {
+      const { puId }: any = req.params;
+      let updatedPu = null;
+      const { dispatched_date }: any = req.body;
+      if (req.body.status) {
+        updatedPu = await this.progressUpdateRepo.finalStatus(
+          puId,
+          dispatched_date,
+          req.body.status,
+        );
+      } else {
+        updatedPu = await this.progressUpdateRepo.finalStatus(
+          puId,
+          dispatched_date,
+        );
+      }
+      return res.sendFormatted(updatedPu, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while updating progress update`,
+        "Updating Progress Update Failed",
+        400,
+      );
+    }
+  }
+
+  public async manageCIPL(req: Request, res: Response) {
+    try {
+      const nonCiplEntities = await this.progressUpdateRepo.getItemsByStatus([
+        DeliveryStatus.ClearedForShipping,
+        DeliveryStatus.CIPLUnderReview,
+        DeliveryStatus.CIPLUnderADMReview,
+        DeliveryStatus.CIPLReviewedAndSubmittedToADM,
+        DeliveryStatus.CIPLReviewedAndRejected,
+      ]);
+      return res.sendArrayFormatted(
+        nonCiplEntities,
+        "Got Cleared For Shipping Entites",
+        200,
+      );
+    } catch (error) {
+      throw new Error(`Error while getting cipl update`);
+    }
+  }
+
+  public async updateStatus(req: Request, res: Response) {
+    try {
+      const puId = req.params.puId;
+      const { status } = req.body;
+      const progressUpdate = await this.progressUpdateRepo.updateStatus(
+        puId,
+        status,
+      );
+      return res.sendFormatted(progressUpdate, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while updating CIPL`,
+        "Updating CIPL Error",
+        400,
+      );
+    }
+  }
+
+  public async manageDelivery(req: Request, res: Response) {
+    try {
+      const deliveryManage = await this.progressUpdateRepo.getItemsByStatus(
+        DeliveryStatus.ReadyAndPacked,
+      );
+      return res.sendArrayFormatted(
+        deliveryManage,
+        "Got Delivered Entities",
+        200,
+      );
+    } catch (error) {
+      throw new Error(`Error while getting delivery`);
+    }
+  }
+  public async updateQdByClient(req: Request, res: Response) {
+    try {
+      const { approved }: any = req.body;
+      const puId: any = req.params.puId;
+      let updatedPu: any = null;
+
+      if (approved === "Yes") {
+        updatedPu = await this.progressUpdateRepo.updateStatus(
+          puId,
+          DeliveryStatus.QDApproved,
+        );
+      } else if (approved === "No") {
+        updatedPu = await this.progressUpdateRepo.updateStatus(
+          puId,
+          DeliveryStatus.QDRejected,
+        );
+      }
+      return res.sendFormatted(updatedPu, "Updated Progress Update", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating progress update",
+        "Error while updating progress update",
+        400,
+      );
+    }
+  }
+
+  public async getLogistics(req: Request, res: Response) {
+    try {
+      const { page, offset }: any = req.params;
+      const logistics = await this.logisticsRepo.getLogistics(page, offset);
+      return res.sendArrayFormatted(logistics, "Got Logistics", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while getting logistics`,
+        "Logistics Error",
+        400,
+      );
+    }
+  }
   // public async updateRawMaterial(req: Request, res: Response) {
   //   try {
   //     const { rawMaterialId } = req.params;

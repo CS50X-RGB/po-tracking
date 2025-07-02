@@ -17,7 +17,7 @@ app.use(
       "http://localhost:3000",
       "https://inventory-r6r4.vercel.app",
       "http://69.62.74.187:3000",
-      "https://inventory.swyftcore.in",
+      "https://purchaseorder.swyftcore.in",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -86,6 +86,22 @@ const permissions: PermissionCreate[] = [
   {
     name: "Update Progress",
     link: "/supplier/progress",
+  },
+  {
+    name: "Approve Quality",
+    link: "/client/quality",
+  },
+  {
+    name: "Delivery Management",
+    link: "/client/delivery",
+  },
+  {
+    name: "CIPL Management",
+    link: "/client/cipl",
+  },
+  {
+    name: "Logistics Management",
+    link: "/client/logistics",
   },
 ];
 

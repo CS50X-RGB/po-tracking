@@ -67,10 +67,12 @@ class UserService {
         };
         if (userDetails.role.name !== "ADMIN") {
           obj.client = userDetails.client._id;
+        }
+        if (userDetails.role.name == "SUPPLIER") {
           obj.supplier = userDetails.supplier._id;
         }
         const accessToken = createToken(obj);
-        const userResponse = {
+        const userResponse: any = {
           name: userDetails.name,
           email: userDetails.email,
           isBlocked: userDetails.isBlocked,
@@ -78,8 +80,10 @@ class UserService {
           token: accessToken,
           permissions: userDetails.role.permissions,
           client: userDetails.client,
-          supplier: userDetails.supplier,
         };
+        if (userDetails.role.name == "SUPPLIER") {
+          userResponse.supplier = userDetails.supplier;
+        }
         return res.sendFormatted(userResponse, "User Details", 200);
       }
     } catch (e) {

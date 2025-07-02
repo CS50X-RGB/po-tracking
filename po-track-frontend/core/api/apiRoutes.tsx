@@ -65,5 +65,28 @@ export const progressUpdate = {
 
   manageUp: "/progressUpdate/underProcess/create/",
   manageFi: "/progressUpdate/finalInspection/create/",
-  manageUsp: "progressUpdate/underSpecialProcess/create/",
+  manageUsp: "/progressUpdate/underSpecialProcess/create/",
+
+  //getNonAcceptedForClient
+  nonQdApproved: "/progressUpdate/client/getNonApprove",
+  updateApproval: "/progressUpdate/client/approve/qd/",
+  //createcipl
+  manageCIPL: "/progressUpdate/cipl/create/",
+  //manageDelivery
+  mangeDelivery: "/progressUpdate/client/getDelivery",
+  //maangeWMS
+  managePostDelivery: "/progressUpdate/wms/create/",
+  //getCIPL
+  manageCIPLGet: "/progressUpdate/client/getCIPL",
+  updateCIPL: "/progressUpdate/client/update/cipl/",
+  //Final_dispatched
+  dispatchLineItem: "/progressUpdate/update/final/",
+  //Logistics
+  getLogisitcs: "/progressUpdate/client/logistics/",
+};
+
+export const analyticsRoute = {
+  getAdminAnalytics: "/adminAnalytics/totalPOCount",
+  getSupplierAnalytics: "/supplierAnalytics/analyticsData",
+  getClientAnalytics: "/clientAnalytics/analyticsData",
 };

@@ -33,12 +33,24 @@ export default function ImportPurchaseOrder() {
     },
   });
 
+  function excelSerialToDate(serial: number): string {
+    const excelEpoch = new Date(1899, 11, 30); // Excel starts from 1899-12-30
+    const jsDate = new Date(excelEpoch.getTime() + serial * 86400000);
+
+    const year = jsDate.getFullYear();
+    const month = String(jsDate.getMonth() + 1).padStart(2, "0"); // 0-based month
+    const day = String(jsDate.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFile(file);
 
     const reader = new FileReader();
+
     reader.onload = (evt: any) => {
       const data = evt.target?.result;
       const workbook = XLSX.read(data, { type: "binary" });
@@ -46,23 +58,34 @@ export default function ImportPurchaseOrder() {
       const rawJson = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
       const normalizedData = rawJson.map((row: any) => {
+        const isSerialDate = (val: any) =>
+          typeof val === "number" && !isNaN(val);
+
+        // Trim helper
+        const trimIfString = (val: any) =>
+          typeof val === "string" ? val.trim() : val;
+
         return {
-          po_name: row["PO Number"],
-          client: row["Client Name"],
+          po_name: trimIfString(row["PO Number"]),
+          client: trimIfString(row["Client Name"]),
           client_branch: row["Client Branch"],
-          payment_term: row["Payment Terms"],
-          freight_term: row["Freight Terms"],
-          order_date: row["Order Date"],
-          supplier: row["Supplier"],
+          payment_term: trimIfString(row["Payment Terms"]),
+          freight_term: trimIfString(row["Freight Terms"]),
+          order_date: isSerialDate(row["Order Date"])
+            ? excelSerialToDate(row["Order Date"])
+            : trimIfString(row["Order Date"]),
+          supplier: trimIfString(row["Supplier"]),
           name: row["Line Item Number"],
-          currency: row["Currency"],
+          currency: trimIfString(row["Currency"]),
           part_number: row["Part Number"],
-          line_item_type: row["Line Item type"],
-          priority: row["Priority"],
-          uom: row["Unit of Measurement"],
+          line_item_type: trimIfString(row["Line Item type"]),
+          priority: trimIfString(row["Priority"]),
+          uom: trimIfString(row["Unit of Measurement"]),
           qty: row["Quantity"],
           unit_price: row["Unit Price"],
-          date_required: row["Date Required"],
+          date_required: isSerialDate(row["Date Required"])
+            ? excelSerialToDate(row["Date Required"])
+            : trimIfString(row["Date Required"]),
         };
       });
 
