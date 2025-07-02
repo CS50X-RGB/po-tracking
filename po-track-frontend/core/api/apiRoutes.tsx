@@ -87,4 +87,6 @@ export const progressUpdate = {
 
 export const analyticsRoute = {
   getAdminAnalytics: "/adminAnalytics/totalPOCount",
+  getSupplierAnalytics: "/supplierAnalytics/analyticsData",
+  getClientAnalytics: "/clientAnalytics/analyticsData",
 };
