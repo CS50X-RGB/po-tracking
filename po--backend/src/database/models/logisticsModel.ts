@@ -15,6 +15,7 @@ export interface ILogistics extends Document {
   wms: mongoose.Schema.Types.ObjectId;
   cipl: mongoose.Schema.Types.ObjectId;
   supplier: mongoose.Schema.Types.ObjectId;
+  line_item: mongoose.Schema.Types.ObjectId;
   delivery_status?: LogisticsStatus;
   delivery_date: Date;
   tracking_link: string;
@@ -35,6 +36,11 @@ const schema = new Schema<ILogistics>({
   cipl: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "ciplModel",
+    required: true,
+  },
+  line_item: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ProgressUpdate",
     required: true,
   },
   supplier: {

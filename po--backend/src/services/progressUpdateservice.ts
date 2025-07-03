@@ -587,6 +587,25 @@ class ProgressUpdateService {
     }
   }
 
+  public async updateLogistics(req: Request, res: Response) {
+    try {
+      const { logid } = req.params;
+      const { data } = req.body;
+      console.log(req.body, "Body");
+      const updatedLogistics = await this.logisticsRepo.updateLogistics(
+        logid,
+        data,
+      );
+      return res.sendFormatted(updatedLogistics, "Updated Logistics", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while updating error`,
+        "Error while updating error",
+        400,
+      );
+    }
+  }
+
   public async getLogistics(req: Request, res: Response) {
     try {
       const { page, offset }: any = req.params;
