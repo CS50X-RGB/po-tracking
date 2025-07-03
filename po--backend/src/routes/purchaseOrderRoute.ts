@@ -41,4 +41,16 @@ router.put(
   userMiddleware.verify.bind(userMiddleware),
   poService.acceptLineItem.bind(poService),
 );
+
+//get open PO
+router.get("/open/:page/:offset", poService.getopenPO.bind(poService));
+
+router.get("/li/all/:page/:offset", poService.getLI.bind(poService));
+
+router.get("/li/open/:page/:offset", poService.getOpenLI.bind(poService));
+
+router.get(
+  "/li/dispatched/:page/:offset",
+  poService.getDispatchedLI.bind(poService),
+);
 export default router;

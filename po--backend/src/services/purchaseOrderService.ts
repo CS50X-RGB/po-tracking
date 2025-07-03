@@ -184,6 +184,70 @@ class PurchaseOrderService {
       return res.sendError(error, "Error while creating line item", 400);
     }
   }
+
+  public async getLI(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.liRepo.getAllLineItems(page, offset);
+      return res.sendArrayFormatted(pos, "All LIs fetched successfully", 200);
+    } catch (error) {
+      return res.sendError(error, "Error while getting LI", 400);
+    }
+  }
+
+  public async getOpenLI(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.liRepo.getOpenLineItems(page, offset);
+      return res.sendArrayFormatted(pos, "Open LIs fetched successfully", 200);
+    } catch (error) {
+      return res.sendError(error, "Error while getting Open LI", 400);
+    }
+  }
+
+  public async getDispatchedLI(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.liRepo.getDispatchedLineItems(page, offset);
+      return res.sendArrayFormatted(
+        pos,
+        "DispatchedLIs fetched successfully",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(error, "Error while getting Dispatched LI", 400);
+    }
+  }
 }
 
 export default PurchaseOrderService;
