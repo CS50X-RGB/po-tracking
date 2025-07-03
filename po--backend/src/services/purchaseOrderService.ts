@@ -59,7 +59,25 @@ class PurchaseOrderService {
       return res.sendError(error, "Error while getting PO", 400);
     }
   }
+  public async getopenPO(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
 
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.poRepo.getOpenPO(page, offset);
+      return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
+    } catch (error) {
+      return res.sendError(error, "Error while getting PO", 400);
+    }
+  }
   //Repo call to fetch the PO by id
   public async getPOById(req: Request, res: Response) {
     try {
