@@ -26,7 +26,7 @@ export default function PageViewComponent({
   } = useQuery({
     queryKey: [queryKey, page],
     queryFn: () => {
-      return getData(`${route}${page}/5`, {});
+      return getData(`${route}${page}/10`, {});
     },
   });
   const [pages, setPages] = useState<number>(0);
@@ -35,7 +35,7 @@ export default function PageViewComponent({
     if (isFetchedGetPos) {
       const { data, total } = getInfo?.data.data;
       setData(data);
-      const pages = Math.ceil(total / 5);
+      const pages = Math.ceil(total / 10);
       setPages(pages);
     }
   }, [isFetchingGetPos]);

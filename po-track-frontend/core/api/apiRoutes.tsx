@@ -25,10 +25,14 @@ export const partNumbersRoutes = {
 export const poRoutes = {
   createPo: "/po/new/create",
   viewPo: "/po/all/",
+  viewOpenPo: "/po/open/",
   addLineItem: "/po/new/add/li",
   deletePo: "/po/delete",
   singlePo: "/po/single",
   importPo: "/po/import/all",
+  viewLI: "/po/li/all/",
+  viewOpenLI: "/po/li/open/",
+  viewDispatchedLI: "/po/li/dispatched/",
 
   //not-accepted
   notAccepted: "/po/non-accepted/",

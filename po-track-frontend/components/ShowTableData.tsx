@@ -193,6 +193,30 @@ export default function ShowTableData({
             onClick={() => router.push(`/admin/master/supplier/${item._id}`)}
           />
         );
+      case "Part Number":
+        return <p>{item.partNumber.name}</p>;
+      case "Total Cost":
+        return <p>{Number(item.total_cost).toFixed(2)}</p>;
+      case "EXW Date":
+        return (
+          <p>
+            {new Date(item.exw_date).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
+          </p>
+        );
+      case "Unit Cost":
+        return <p>{Number(item.unit_cost).toFixed(2)}</p>;
+      case "Line Item Status":
+        return <p>{item.line_item_status}</p>;
+      case "Line Item Type":
+        return <p>{item.line_item_type}</p>;
+      case "Purchase Order":
+        return <p>{item.purchaseOrder.name}</p>;
+      case "Supplier":
+        return <p>{item.supplier.name}</p>;
       case "action":
         return (
           <div className="flex flex-row gap-4 items-center w-full">
@@ -264,7 +288,13 @@ export default function ShowTableData({
       case "Supplier Address":
         return <p>{item.address}</p>;
       case "Client Name":
+        return <p>{item.client.name}</p>;
+      case "Client Branch Name":
+        return <p>{item.client_branch.name}</p>;
+      case "Payment Terms":
+        return <p>{item.payment_term.name}</p>;
       case "Purchase Order Name":
+        return <p>{item.name}</p>;
       case "Sub Supplier Name":
         return <p>{item.name}</p>;
       default:
