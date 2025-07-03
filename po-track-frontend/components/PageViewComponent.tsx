@@ -9,12 +9,14 @@ export default function PageViewComponent({
   route,
   columnHeaders,
   queryKey,
+  heading,
 }: {
   route: any;
   columnHeaders: {
     name: string;
   }[];
   queryKey: string;
+  heading: any;
 }) {
   const [page, setPage] = useState<number>(1);
   const {
@@ -40,7 +42,7 @@ export default function PageViewComponent({
 
   return (
     <div className="flex flex-col gap-4">
-      <h1>View Purchase Orders</h1>
+      <h1>{heading}</h1>
       <ShowTableData
         page={page}
         columnHeaders={columnHeaders}
