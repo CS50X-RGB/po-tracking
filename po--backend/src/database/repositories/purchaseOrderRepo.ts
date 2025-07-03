@@ -167,6 +167,67 @@ class PurchaseOrderRepo {
       throw new Error(`Error while getting the PO`);
     }
   }
+  //get open value
+  public async getOpenPO(
+    page: number,
+    offset: number,
+    supplierId?: any,
+    clientId?: any,
+  ) {
+    try {
+      const matchStage: any = {
+        "lineItemDocs.supplier_readliness_date": { $ne: null },
+      };
+
+      if (supplierId) {
+        matchStage["lineItemDocs.supplier"] = supplierId;
+      }
+      if (clientId) {
+        matchStage["client"] = clientId;
+      }
+
+      const openPOAgg = await PurchaseOrderModel.aggregate([
+        {
+          $lookup: {
+            from: "line_items",
+            localField: "lineItem",
+            foreignField: "_id",
+            as: "lineItemDocs",
+          },
+        },
+        { $unwind: "$lineItemDocs" },
+        { $match: matchStage },
+        {
+          $group: {
+            _id: "$_id", // Unique PO
+            poTotal: { $sum: "$lineItemDocs.total_cost" },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalOpenPOValue: { $sum: "$poTotal" },
+            openCount: { $sum: 1 }, // Count of unique POs
+          },
+        },
+      ])
+        .skip((page - 1) * offset)
+        .limit(offset);
+
+      const openCount = openPOAgg[0]?.openCount ?? 0;
+      const openPOValue = openPOAgg[0]?.totalOpenPOValue ?? 0;
+
+      console.log({ openCount, openPOValue });
+      //send in this format
+      return {
+        data: openCount,
+        total: openCount,
+      };
+    } catch (error) {
+      console.error("Error getting total open PO count", error);
+      throw new Error(`Error in getting total open PO Count`);
+    }
+  }
 
   public async getPOByID(id: ObjectId) {
     try {

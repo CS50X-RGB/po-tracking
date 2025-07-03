@@ -8,11 +8,9 @@ import {
   isSuperAdmin,
 } from "./localStorageKeys";
 
-export const baseUrlExport =
-  "https://api-purchaseorder.swyftcore.in/api/v1/web/";
+export const baseUrlExport = "http://localhost:5000/api/v1/web/";
 export const baseUrlExportNgRok = "https://2798-106-222-236-78.ngrok-free.app";
-export const localBackend =
-  "https://api-purchaseorder.swyftcore.in/api/v1/web/";
+export const localBackend = "http://localhost:5000/api/v1/web/";
 
 const instance = axios.create({
   baseURL: baseUrlExport,

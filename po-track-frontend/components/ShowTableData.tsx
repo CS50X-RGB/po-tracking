@@ -155,9 +155,8 @@ export default function ShowTableData({
     setQty(item.qty);
   };
   const getValue = (item: any, columnKey: any): React.ReactNode => {
+    console.log(item, "ITem");
     switch (columnKey) {
-      case "Purchase Order Name":
-        return <p>{item.name}</p>;
       case "role":
         return (
           <Chip color={roleColors[item.role.name] || "default"}>
@@ -265,6 +264,7 @@ export default function ShowTableData({
       case "Supplier Address":
         return <p>{item.address}</p>;
       case "Client Name":
+      case "Purchase Order Name":
       case "Sub Supplier Name":
         return <p>{item.name}</p>;
       default:
