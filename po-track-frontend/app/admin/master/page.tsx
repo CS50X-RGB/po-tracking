@@ -114,12 +114,13 @@ export default function Master() {
       return getData(`${masterRoutes.getSupplier}${pagesClient}/5`, {});
     },
   });
+  console.log();
   useEffect(() => {
     if (isFetchedClients) {
-      const { client, total } = getallClient?.data.data;
+      const { client, total } = getallClient?.data?.data;
       console.log(getallClient?.data.data);
       setPages(total / 5);
-      setClientData(client);
+      setClientData([]);
     }
   }, [isFetchingClients]);
   useEffect(() => {

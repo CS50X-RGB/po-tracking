@@ -11,7 +11,10 @@ router.post(
   "/create/client_branch/:clientId",
   masterData.createClientBranch.bind(masterData),
 );
-router.get("/client/:page/:offset", masterData.getAllClients.bind(masterData));
+router.get(
+  "/get/clients/:page/:offset",
+  masterData.getAllClients.bind(masterData),
+);
 router.get(
   "/client/clientId/:clientId/:page/:offset",
   masterData.getAllClientsBranch.bind(masterData),
