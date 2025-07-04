@@ -428,7 +428,11 @@ class ProgressUpdateService {
       }
       const { _id, supplier, client, name } = req.user;
       const getProgressUpdateEntites =
-        await this.progressUpdateRepo.getAllProgressUpdate(supplier);
+        await this.progressUpdateRepo.getAllProgressUpdate(
+          null,
+          supplier,
+          null,
+        );
       return res.sendArrayFormatted(
         getProgressUpdateEntites,
         "Got All Entites",
@@ -451,7 +455,11 @@ class ProgressUpdateService {
       const poId = req.params.poId;
       const { _id, supplier, client, name } = req.user;
       const getProgressUpdateEntity =
-        await this.progressUpdateRepo.getAllProgressUpdate(supplier, poId);
+        await this.progressUpdateRepo.getAllProgressUpdate(
+          null,
+          supplier,
+          poId,
+        );
       return res.sendFormatted(
         getProgressUpdateEntity,
         "Got Single Entity",
@@ -615,6 +623,26 @@ class ProgressUpdateService {
       return res.sendError(
         `Error while getting logistics`,
         "Logistics Error",
+        400,
+      );
+    }
+  }
+
+  public async getOpenPo(req: Request, res: Response) {
+    try {
+      let openPo = [];
+      if (req.query.status && req.query.status != "") {
+        openPo = await this.progressUpdateRepo.getAllProgressUpdate(
+          req.query.status,
+        );
+      } else {
+        openPo = await this.progressUpdateRepo.getAllProgressUpdate();
+      }
+      return res.sendArrayFormatted(openPo, "Fetched Purchase Orders", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while getting open po`,
+        "Open Po fetching error",
         400,
       );
     }

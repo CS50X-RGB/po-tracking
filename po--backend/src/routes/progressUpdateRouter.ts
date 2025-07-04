@@ -89,11 +89,19 @@ router.put(
   userMiddleware.verify.bind(userMiddleware),
   progressUpdateservice.updatePu.bind(progressUpdateservice),
 );
-router.put("/client/update/logistics/:logid",progressUpdateservice.updateLogistics.bind(progressUpdateservice));
+router.put(
+  "/client/update/logistics/:logid",
+  progressUpdateservice.updateLogistics.bind(progressUpdateservice),
+);
 router.get(
   "/client/logistics/:page/:offset",
   userMiddleware.verify.bind(userMiddleware),
   progressUpdateservice.getLogistics.bind(progressUpdateservice),
+);
+
+router.get(
+  "/client/open/po",
+  progressUpdateservice.getOpenPo.bind(progressUpdateservice),
 );
 // router.patch(
 //   "/rawMaterial/update/:rawMaterialId",

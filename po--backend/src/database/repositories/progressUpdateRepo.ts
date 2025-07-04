@@ -373,11 +373,20 @@ class ProgressUpdateRepo {
   public async getUnderSpecialProcess() {}
   public async deleteUnderSpecialProcess() {}
 
-  public async getAllProgressUpdate(supplierId: any, poId?: any) {
+  public async getAllProgressUpdate(
+    status?: any,
+    supplierId?: any,
+    poId?: any,
+  ) {
     try {
-      const progressUpdates = await ProgressUpdateModel.find({
-        supplier: supplierId,
-      })
+      let filter: any = {};
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      if (status) {
+        filter.delivery_status = status;
+      }
+      const progressUpdates = await ProgressUpdateModel.find(filter)
         .populate({
           path: "LI",
           populate: [
