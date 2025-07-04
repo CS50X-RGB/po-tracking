@@ -89,7 +89,7 @@ router.put(
   userMiddleware.verify.bind(userMiddleware),
   progressUpdateservice.updatePu.bind(progressUpdateservice),
 );
-
+router.put("/client/update/logistics/:logid",progressUpdateservice.updateLogistics.bind(progressUpdateservice));
 router.get(
   "/client/logistics/:page/:offset",
   userMiddleware.verify.bind(userMiddleware),

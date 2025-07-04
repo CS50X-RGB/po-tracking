@@ -528,8 +528,8 @@ export default function ProgressUpdateModal({
                 ))}
               </Select>
             )}
-
             <Button
+              isDisabled={status === "Dispatched" || status === "Shortclosed"}
               isLoading={isLoading}
               type="submit"
               color="primary"

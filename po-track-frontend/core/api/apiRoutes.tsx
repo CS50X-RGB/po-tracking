@@ -87,6 +87,8 @@ export const progressUpdate = {
   dispatchLineItem: "/progressUpdate/update/final/",
   //Logistics
   getLogisitcs: "/progressUpdate/client/logistics/",
+  //updateLogitics,
+  updateLogistics : "/progressUpdate/client/update/logistics/",
 };
 
 export const analyticsRoute = {
