@@ -1,4 +1,4 @@
-import { Types, ObjectId } from "mongoose";
+import mongoose, { Types, ObjectId } from "mongoose";
 import { PoCreate, PoCreateExcel } from "../../interfaces/poInterface";
 import PurchaseOrderModel from "../models/purchaseOrderModel";
 import ClientRepo from "./clientRepo";
@@ -148,9 +148,18 @@ class PurchaseOrderRepo {
   }
 
   //Function to get All Purchase order
-  public async getAllPO(page: number, offset: number) {
+  public async getAllPO(
+    page: number,
+    offset: number,
+    supplierId?: mongoose.Types.ObjectId,
+  ) {
     try {
-      const POs = await PurchaseOrderModel.find()
+      const filter: any = {};
+
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      const POs = await PurchaseOrderModel.find(filter)
         .populate("client")
         .populate("client_branch")
         .populate("payment_term")
@@ -158,7 +167,10 @@ class PurchaseOrderRepo {
         .skip((page - 1) * offset)
         .limit(offset)
         .lean();
-      const total = await PurchaseOrderModel.countDocuments();
+
+      console.log("PO is", POs);
+
+      const total = await PurchaseOrderModel.countDocuments(filter);
       return {
         data: POs,
         total,

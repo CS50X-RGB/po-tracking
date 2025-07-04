@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { LineItemCreate } from "../../interfaces/lineItemInterface";
 import LineItemModel from "../models/lineItemModel";
 import progressUpdateModel from "../models/progressUpdateModel";
@@ -68,6 +69,7 @@ class LineItemRepo {
     }
   }
 
+  //get all line items for admin
   public async getAllLineItems(
     page: number,
     offset: number,
@@ -75,7 +77,12 @@ class LineItemRepo {
     clientId?: any,
   ) {
     try {
-      const LIs = await LineItemModel.find()
+      const filter: any = {};
+
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      const LIs = await LineItemModel.find(filter)
         .populate("partNumber")
         .populate("supplier")
         .populate("uom")
@@ -83,7 +90,7 @@ class LineItemRepo {
         .skip((page - 1) * offset)
         .limit(offset)
         .lean();
-      const total = await LineItemModel.countDocuments();
+      const total = await LineItemModel.countDocuments(filter);
       return {
         data: LIs,
         total,
@@ -101,9 +108,14 @@ class LineItemRepo {
     clientId?: any,
   ) {
     try {
-      const openLIs = await LineItemModel.find({
+      const filter: any = {
         supplier_readliness_date: { $ne: null },
-      })
+      };
+
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      const openLIs = await LineItemModel.find(filter)
         .populate("partNumber")
         .populate("supplier")
         .populate("uom")
@@ -111,9 +123,7 @@ class LineItemRepo {
         .skip((page - 1) * offset)
         .limit(offset)
         .lean();
-      const total = await LineItemModel.countDocuments({
-        supplier_readliness_date: { $ne: null },
-      });
+      const total = await LineItemModel.countDocuments(filter);
       return {
         data: openLIs,
         total,
@@ -127,12 +137,14 @@ class LineItemRepo {
   public async getDispatchedLineItems(
     page: number,
     offset: number,
-    supplierId?: any,
-    clientId?: any,
+    supplierId?: mongoose.Types.ObjectId,
+    clientId?: mongoose.Types.ObjectId,
   ) {
     try {
-      const dispatchedLiAgg = await progressUpdateModel.aggregate([
+      const pipeline: any[] = [
         { $match: { delivery_status: "Dispatched" } },
+        ...(supplierId ? [{ $match: { supplier: supplierId } }] : []),
+
         {
           $lookup: {
             from: "line_items",
@@ -146,7 +158,7 @@ class LineItemRepo {
         // Populate partNumber
         {
           $lookup: {
-            from: "partnumbers", // collection name in lowercase and plural
+            from: "partnumbers",
             localField: "lineItemDocs.partNumber",
             foreignField: "_id",
             as: "lineItemDocs.partNumber",
@@ -207,15 +219,18 @@ class LineItemRepo {
           },
         },
 
-        // Replace root with the populated line item
         { $replaceRoot: { newRoot: "$lineItemDocs" } },
 
         { $skip: (page - 1) * offset },
         { $limit: offset },
-      ]);
+      ];
 
-      const totalCountAgg = await progressUpdateModel.aggregate([
+      const dispatchedLiAgg = await progressUpdateModel.aggregate(pipeline);
+
+      // Total Count Pipeline
+      const countPipeline: any[] = [
         { $match: { delivery_status: "Dispatched" } },
+        ...(supplierId ? [{ $match: { supplier: supplierId } }] : []),
         {
           $lookup: {
             from: "line_items",
@@ -226,8 +241,9 @@ class LineItemRepo {
         },
         { $unwind: "$lineItemDocs" },
         { $count: "total" },
-      ]);
+      ];
 
+      const totalCountAgg = await progressUpdateModel.aggregate(countPipeline);
       const total = totalCountAgg[0]?.total || 0;
 
       return {
