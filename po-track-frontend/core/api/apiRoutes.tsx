@@ -39,6 +39,10 @@ export const poRoutes = {
   notAcceptedLi: "/po/li/not-accepted/",
   //AcceptedLi
   acceptedLi: "/po/li/accept/",
+  viewOpenPOSupplier: "/po/supplier/open/",
+  viewLISupplier: "/po/li/supplier/all/",
+  viewDispatchedLISupplier: "/po/li/supplier/dispatched/",
+  viewopenLISupplier: "/po/li/supplier/open/",
 };
 export const masterRoutes = {
   createClient: "/master/create/client",
