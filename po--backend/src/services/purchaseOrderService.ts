@@ -2,6 +2,7 @@ import PurchaseOrderRepo from "../database/repositories/purchaseOrderRepo";
 import { Request, Response } from "express";
 import LiRepo from "../database/repositories/liRepo";
 import { LineItemCreate } from "../interfaces/lineItemInterface";
+import mongoose from "mongoose";
 
 class PurchaseOrderService {
   private poRepo: PurchaseOrderRepo;
@@ -42,6 +43,10 @@ class PurchaseOrderService {
   //Repo call to fetch all the POs
   public async getPO(req: Request, res: Response) {
     try {
+      const supplierId = req.user?.supplier
+        ? new mongoose.Types.ObjectId(req.user.supplier)
+        : undefined;
+      console.log(supplierId);
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
 
@@ -53,7 +58,7 @@ class PurchaseOrderService {
         );
       }
 
-      const pos = await this.poRepo.getAllPO(page, offset);
+      const pos = await this.poRepo.getAllPO(page, offset, supplierId);
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting PO", 400);
@@ -61,8 +66,12 @@ class PurchaseOrderService {
   }
   public async getopenPO(req: Request, res: Response) {
     try {
+      const supplierId = req.user?.supplier
+        ? new mongoose.Types.ObjectId(req.user.supplier)
+        : undefined;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
+      let pos: any = [];
 
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
@@ -72,7 +81,12 @@ class PurchaseOrderService {
         );
       }
 
-      const pos = await this.poRepo.getOpenPO(page, offset);
+      if (supplierId) {
+        pos = await this.poRepo.getOpenPO(page, offset, supplierId);
+      } else {
+        pos = await this.poRepo.getOpenPO(page, offset);
+      }
+
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting PO", 400);
@@ -182,6 +196,86 @@ class PurchaseOrderService {
       return res.sendFormatted(createLineItem, "Line Item Added", 200);
     } catch (error) {
       return res.sendError(error, "Error while creating line item", 400);
+    }
+  }
+
+  public async getLI(req: Request, res: Response) {
+    try {
+      const supplierId = req.user?.supplier
+        ? new mongoose.Types.ObjectId(req.user.supplier)
+        : undefined;
+
+      console.log("user is ", req.user);
+      console.log("supplier id is", supplierId);
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.liRepo.getAllLineItems(page, offset, supplierId);
+      return res.sendArrayFormatted(pos, "All LIs fetched successfully", 200);
+    } catch (error) {
+      return res.sendError(error, "Error while getting LI", 400);
+    }
+  }
+
+  public async getOpenLI(req: Request, res: Response) {
+    try {
+      const supplierId = req.user?.supplier
+        ? new mongoose.Types.ObjectId(req.user.supplier)
+        : undefined;
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.liRepo.getOpenLineItems(page, offset, supplierId);
+      return res.sendArrayFormatted(pos, "Open LIs fetched successfully", 200);
+    } catch (error) {
+      return res.sendError(error, "Error while getting Open LI", 400);
+    }
+  }
+
+  public async getDispatchedLI(req: Request, res: Response) {
+    try {
+      const supplierId = req.user?.supplier
+        ? new mongoose.Types.ObjectId(req.user.supplier)
+        : undefined;
+      const page = parseInt(req.params.page);
+      const offset = parseInt(req.params.offset);
+
+      if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
+        return res.sendError(
+          "Invalid pagination parameters",
+          "Bad Request",
+          400,
+        );
+      }
+
+      const pos = await this.liRepo.getDispatchedLineItems(
+        page,
+        offset,
+        supplierId,
+      );
+      return res.sendArrayFormatted(
+        pos,
+        "DispatchedLIs fetched successfully",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(error, "Error while getting Dispatched LI", 400);
     }
   }
 }

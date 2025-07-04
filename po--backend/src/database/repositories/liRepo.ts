@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
 import { LineItemCreate } from "../../interfaces/lineItemInterface";
 import LineItemModel from "../models/lineItemModel";
+import progressUpdateModel from "../models/progressUpdateModel";
 import ProgressUpdateRepo from "./progressUpdateRepo";
 
 class LineItemRepo {
@@ -64,6 +66,192 @@ class LineItemRepo {
     } catch (error) {
       console.error(error, "Error updating Line Item");
       throw new Error("Failed to update Line Item");
+    }
+  }
+
+  //get all line items for admin
+  public async getAllLineItems(
+    page: number,
+    offset: number,
+    supplierId?: any,
+    clientId?: any,
+  ) {
+    try {
+      const filter: any = {};
+
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      const LIs = await LineItemModel.find(filter)
+        .populate("partNumber")
+        .populate("supplier")
+        .populate("uom")
+        .populate("purchaseOrder")
+        .skip((page - 1) * offset)
+        .limit(offset)
+        .lean();
+      const total = await LineItemModel.countDocuments(filter);
+      return {
+        data: LIs,
+        total,
+      };
+    } catch (error) {
+      throw new Error(`Error while getting the LIs`);
+    }
+  }
+
+  //get open line Items
+  public async getOpenLineItems(
+    page: number,
+    offset: number,
+    supplierId?: any,
+    clientId?: any,
+  ) {
+    try {
+      const filter: any = {
+        supplier_readliness_date: { $ne: null },
+      };
+
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      const openLIs = await LineItemModel.find(filter)
+        .populate("partNumber")
+        .populate("supplier")
+        .populate("uom")
+        .populate("purchaseOrder")
+        .skip((page - 1) * offset)
+        .limit(offset)
+        .lean();
+      const total = await LineItemModel.countDocuments(filter);
+      return {
+        data: openLIs,
+        total,
+      };
+    } catch (error) {
+      throw new Error(`Error while getting the Open LIs`);
+    }
+  }
+
+  //get dispatched line items
+  public async getDispatchedLineItems(
+    page: number,
+    offset: number,
+    supplierId?: mongoose.Types.ObjectId,
+    clientId?: mongoose.Types.ObjectId,
+  ) {
+    try {
+      const pipeline: any[] = [
+        { $match: { delivery_status: "Dispatched" } },
+        ...(supplierId ? [{ $match: { supplier: supplierId } }] : []),
+
+        {
+          $lookup: {
+            from: "line_items",
+            localField: "LI",
+            foreignField: "_id",
+            as: "lineItemDocs",
+          },
+        },
+        { $unwind: "$lineItemDocs" },
+
+        // Populate partNumber
+        {
+          $lookup: {
+            from: "partnumbers",
+            localField: "lineItemDocs.partNumber",
+            foreignField: "_id",
+            as: "lineItemDocs.partNumber",
+          },
+        },
+        {
+          $unwind: {
+            path: "$lineItemDocs.partNumber",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        // Populate supplier
+        {
+          $lookup: {
+            from: "suppliers",
+            localField: "lineItemDocs.supplier",
+            foreignField: "_id",
+            as: "lineItemDocs.supplier",
+          },
+        },
+        {
+          $unwind: {
+            path: "$lineItemDocs.supplier",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        // Populate uom
+        {
+          $lookup: {
+            from: "unit_of_measurements",
+            localField: "lineItemDocs.uom",
+            foreignField: "_id",
+            as: "lineItemDocs.uom",
+          },
+        },
+        {
+          $unwind: {
+            path: "$lineItemDocs.uom",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        // Populate purchaseOrder
+        {
+          $lookup: {
+            from: "pos",
+            localField: "lineItemDocs.purchaseOrder",
+            foreignField: "_id",
+            as: "lineItemDocs.purchaseOrder",
+          },
+        },
+        {
+          $unwind: {
+            path: "$lineItemDocs.purchaseOrder",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        { $replaceRoot: { newRoot: "$lineItemDocs" } },
+
+        { $skip: (page - 1) * offset },
+        { $limit: offset },
+      ];
+
+      const dispatchedLiAgg = await progressUpdateModel.aggregate(pipeline);
+
+      // Total Count Pipeline
+      const countPipeline: any[] = [
+        { $match: { delivery_status: "Dispatched" } },
+        ...(supplierId ? [{ $match: { supplier: supplierId } }] : []),
+        {
+          $lookup: {
+            from: "line_items",
+            localField: "LI",
+            foreignField: "_id",
+            as: "lineItemDocs",
+          },
+        },
+        { $unwind: "$lineItemDocs" },
+        { $count: "total" },
+      ];
+
+      const totalCountAgg = await progressUpdateModel.aggregate(countPipeline);
+      const total = totalCountAgg[0]?.total || 0;
+
+      return {
+        data: dispatchedLiAgg,
+        total,
+      };
+    } catch (error) {
+      throw new Error(`Error while fetching dispatched line items: ${error}`);
     }
   }
 }

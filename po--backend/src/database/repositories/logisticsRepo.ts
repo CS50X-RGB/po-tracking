@@ -9,6 +9,7 @@ class LogisticsRepo {
       if (progressUpdate) {
         const createLogistics = await LogisticsModel.create({
           wms: progressUpdate.wms,
+          line_item: progressUpdate._id,
           purchaseOrder: progressUpdate.LI.purchaseOrder,
           cipl: progressUpdate.cipl,
           supplier: progressUpdate.supplier,
@@ -20,11 +21,30 @@ class LogisticsRepo {
       throw new Error(`Error while creating Logistics`);
     }
   }
+  public async updateLogistics(id: any, data: any) {
+    try {
+      const updatedLogisctics = await LogisticsModel.findOneAndUpdate(
+        { _id: id },
+        data,
+        { new: true },
+      );
 
+      return updatedLogisctics;
+    } catch (error) {
+      console.log(error, "error");
+      throw new Error(`Error while updating logistics`);
+    }
+  }
   public async getLogistics(page: number, offset: number) {
     try {
       const logistics = await LogisticsModel.find()
         .populate("wms cipl supplier purchaseOrder")
+        .populate({
+          path: "line_item",
+          populate: {
+            path: "LI",
+          },
+        })
         .skip((page - 1) * offset)
         .limit(offset)
         .lean();

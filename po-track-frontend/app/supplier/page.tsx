@@ -59,12 +59,15 @@ export default function Supplier() {
             />
             <AnalyticsCard
               title1="Total Line Items"
+              href1="/supplier/li/all"
               value1={result.lineItemData.totalLineItem}
               title2="Open Line Items"
+              href2="/supplier/li/open"
               value2={result.lineItemData.openLineItem}
             />
             <AnalyticsCard
               title1="Open POs"
+              href1="/supplier/po/open"
               value1={result.openPOData.openCount}
               title2="Value"
               value2={new Intl.NumberFormat("en-IN", {
@@ -75,13 +78,14 @@ export default function Supplier() {
             />
             <AnalyticsCard
               title1="Line Items Dispatched"
+              href1="/supplier/li/dispatched"
               value1={result.dispatchedLIData.count || 0}
               title2="Value"
               value2={new Intl.NumberFormat("en-IN", {
                 style: "currency",
                 currency: "INR",
                 maximumFractionDigits: 0,
-              }).format(result.dispatchedLIData.count || 0)}
+              }).format(result.dispatchedLIData.value || 0)}
             />
           </div>
           <div className="right-div w-1/2 grid grid-cols-2 gap-4 p-2 ">

@@ -1,4 +1,4 @@
-import { Types, ObjectId } from "mongoose";
+import mongoose, { Types, ObjectId } from "mongoose";
 import { PoCreate, PoCreateExcel } from "../../interfaces/poInterface";
 import PurchaseOrderModel from "../models/purchaseOrderModel";
 import ClientRepo from "./clientRepo";
@@ -148,9 +148,18 @@ class PurchaseOrderRepo {
   }
 
   //Function to get All Purchase order
-  public async getAllPO(page: number, offset: number) {
+  public async getAllPO(
+    page: number,
+    offset: number,
+    supplierId?: mongoose.Types.ObjectId,
+  ) {
     try {
-      const POs = await PurchaseOrderModel.find()
+      const filter: any = {};
+
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      const POs = await PurchaseOrderModel.find(filter)
         .populate("client")
         .populate("client_branch")
         .populate("payment_term")
@@ -158,7 +167,10 @@ class PurchaseOrderRepo {
         .skip((page - 1) * offset)
         .limit(offset)
         .lean();
-      const total = await PurchaseOrderModel.countDocuments();
+
+      console.log("PO is", POs);
+
+      const total = await PurchaseOrderModel.countDocuments(filter);
       return {
         data: POs,
         total,
@@ -167,7 +179,7 @@ class PurchaseOrderRepo {
       throw new Error(`Error while getting the PO`);
     }
   }
-  //get open value
+  //get open value-> not completed
   public async getOpenPO(
     page: number,
     offset: number,
@@ -180,13 +192,97 @@ class PurchaseOrderRepo {
       };
 
       if (supplierId) {
-        matchStage["lineItemDocs.supplier"] = supplierId;
+        matchStage["lineItemDocs.supplier"] = new Types.ObjectId(supplierId);
       }
       if (clientId) {
-        matchStage["client"] = clientId;
+        matchStage["client"] = new Types.ObjectId(clientId);
       }
 
-      const openPOAgg = await PurchaseOrderModel.aggregate([
+      const pipeline = [
+        {
+          $lookup: {
+            from: "line_items",
+            localField: "lineItem",
+            foreignField: "_id",
+            as: "lineItemDocs",
+          },
+        },
+        { $unwind: "$lineItemDocs" },
+        { $match: matchStage },
+
+        // Populate client_branch
+        {
+          $lookup: {
+            from: "client_branches",
+            localField: "client_branch",
+            foreignField: "_id",
+            as: "client_branch",
+          },
+        },
+        {
+          $unwind: { path: "$client_branch", preserveNullAndEmptyArrays: true },
+        },
+
+        // Populate client
+        {
+          $lookup: {
+            from: "clients",
+            localField: "client",
+            foreignField: "_id",
+            as: "client",
+          },
+        },
+        { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
+
+        // Populate freight_term
+        {
+          $lookup: {
+            from: "freight_terms",
+            localField: "freight_term",
+            foreignField: "_id",
+            as: "freight_term",
+          },
+        },
+        {
+          $unwind: { path: "$freight_term", preserveNullAndEmptyArrays: true },
+        },
+
+        // Populate payment_term
+        {
+          $lookup: {
+            from: "payment_terms",
+            localField: "payment_term",
+            foreignField: "_id",
+            as: "payment_term",
+          },
+        },
+        {
+          $unwind: { path: "$payment_term", preserveNullAndEmptyArrays: true },
+        },
+
+        // Group by PO ID while retaining doc + calculating poTotal
+        {
+          $group: {
+            _id: "$_id",
+            doc: { $first: "$$ROOT" },
+            poTotal: { $sum: "$lineItemDocs.total_cost" },
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: ["$doc", { poTotal: "$poTotal" }],
+            },
+          },
+        },
+        { $skip: (page - 1) * offset },
+        { $limit: offset },
+      ];
+
+      const data = await PurchaseOrderModel.aggregate(pipeline);
+
+      // For total count:
+      const countPipeline = [
         {
           $lookup: {
             from: "line_items",
@@ -199,33 +295,24 @@ class PurchaseOrderRepo {
         { $match: matchStage },
         {
           $group: {
-            _id: "$_id", // Unique PO
-            poTotal: { $sum: "$lineItemDocs.total_cost" },
+            _id: "$_id",
           },
         },
         {
-          $group: {
-            _id: null,
-            totalOpenPOValue: { $sum: "$poTotal" },
-            openCount: { $sum: 1 }, // Count of unique POs
-          },
+          $count: "total",
         },
-      ])
-        .skip((page - 1) * offset)
-        .limit(offset);
+      ];
 
-      const openCount = openPOAgg[0]?.openCount ?? 0;
-      const openPOValue = openPOAgg[0]?.totalOpenPOValue ?? 0;
+      const totalAgg = await PurchaseOrderModel.aggregate(countPipeline);
+      const total = totalAgg[0]?.total ?? 0;
 
-      console.log({ openCount, openPOValue });
-      //send in this format
       return {
-        data: openCount,
-        total: openCount,
+        data,
+        total,
       };
     } catch (error) {
-      console.error("Error getting total open PO count", error);
-      throw new Error(`Error in getting total open PO Count`);
+      console.error("Error getting open POs:", error);
+      throw new Error(`Error getting open POs`);
     }
   }
 

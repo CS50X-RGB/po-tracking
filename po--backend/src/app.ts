@@ -103,6 +103,10 @@ const permissions: PermissionCreate[] = [
     name: "Logistics Management",
     link: "/client/logistics",
   },
+  {
+    name: "Client Open Purchase Order",
+    link: "/client/po/open",
+  },
 ];
 
 const paymentTerms: RoleInterface[] = [

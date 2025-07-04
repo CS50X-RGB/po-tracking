@@ -57,18 +57,14 @@ class ProgressUpdateRepo {
         ? DeliveryStatus.Dispatched
         : (status ?? currentPU.delivery_status);
       const lineItemTotalDispatched = Number(currentPU.dispatchedQty);
-      const lineItemUpdate = await LineItemModel.updateOne(
+      const lineItem: any = await LineItemModel.findById(currentPU.LI);
+      const increment = lineItemTotalDispatched * lineItem.unit_cost;
+
+      await LineItemModel.updateOne(
         { _id: currentPU.LI },
-        [
-          {
-            $set: {
-              value_delivered: {
-                $multiply: [lineItemTotalDispatched, "$unit_cost"],
-              },
-            },
-          },
-        ],
+        { $inc: { value_delivered: increment } },
       );
+
       const updatedPU = await ProgressUpdateModel.findByIdAndUpdate(
         id,
         {
@@ -377,11 +373,20 @@ class ProgressUpdateRepo {
   public async getUnderSpecialProcess() {}
   public async deleteUnderSpecialProcess() {}
 
-  public async getAllProgressUpdate(supplierId: any, poId?: any) {
+  public async getAllProgressUpdate(
+    status?: any,
+    supplierId?: any,
+    poId?: any,
+  ) {
     try {
-      const progressUpdates = await ProgressUpdateModel.find({
-        supplier: supplierId,
-      })
+      let filter: any = {};
+      if (supplierId) {
+        filter.supplier = supplierId;
+      }
+      if (status) {
+        filter.delivery_status = status;
+      }
+      const progressUpdates = await ProgressUpdateModel.find(filter)
         .populate({
           path: "LI",
           populate: [

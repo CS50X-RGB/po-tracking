@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 
 export default function POView() {
   const [page, setPage] = useState<number>(1);
-  const [total, setTotal] = useState<number>(1);
   const {
     data: getPos,
     isFetched: isFetchedGetPos,
@@ -21,6 +20,7 @@ export default function POView() {
   });
   const [pages, setPages] = useState<number>(0);
   const [data, setData] = useState<any>([]);
+
   useEffect(() => {
     if (isFetchedGetPos) {
       const { data, total } = getPos?.data.data;
