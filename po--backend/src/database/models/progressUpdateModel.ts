@@ -60,6 +60,7 @@ export interface IProgressUpdate extends Document {
   openqty: Number;
   tentative_planned_date: Date;
   dispatchedQty: Number;
+  feed_back_tracker: mongoose.Schema.Types.ObjectId[];
   delivery_status: DeliveryStatus;
   dispatched_date: Date;
 }
@@ -123,6 +124,12 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
       enum: Object.values(DeliveryStatus),
       default: DeliveryStatus.New,
     },
+    feed_back_tracker: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "feed_back_tracker_model",
+      },
+    ],
   },
   { timestamps: true },
 );

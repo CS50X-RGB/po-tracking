@@ -92,7 +92,7 @@ export const progressUpdate = {
   //Logistics
   getLogisitcs: "/progressUpdate/client/logistics/",
   //updateLogitics,
-  updateLogistics: "/progressUpdate/client/update/logistics/",
+  updateLogistics: "/progressUpdate/client/update/logistic/",
 
   //Update Open po
   getClientOpenPo: "/progressUpdate/client/open/po",

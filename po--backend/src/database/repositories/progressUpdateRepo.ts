@@ -1,6 +1,7 @@
 import rawMaterial, { RMtracker } from "../models/rawMaterial";
 import underProcessModel from "../models/underProcessModel";
 import CiplDocument from "../models/ciplModel";
+import FeedBackTrackerModel from "../models/feedbackTrackerModel";
 import underSpecialProcessModel from "../models/underSpecialProcessModel";
 import finalInspectionModel, {
   inspectionTracker,
@@ -18,7 +19,7 @@ import { underProcessInterface } from "../../interfaces/underProcessInterface";
 import { underSpecialProcessInterface } from "../../interfaces/underSpecialProcessInterface";
 import { finalInspectionInterface } from "../../interfaces/finalInspection";
 import WmsModel from "../models/wmsModel";
-import LineItemModel from "../models/lineItemModel";
+import LineItemModel, { LineItemStatus } from "../models/lineItemModel";
 import LogisticsRepo from "./logisticsRepo";
 
 class ProgressUpdateRepo {
@@ -59,10 +60,26 @@ class ProgressUpdateRepo {
       const lineItemTotalDispatched = Number(currentPU.dispatchedQty);
       const lineItem: any = await LineItemModel.findById(currentPU.LI);
       const increment = lineItemTotalDispatched * lineItem.unit_cost;
-
+      console.log(status, "status");
+      let lineItemStatus: LineItemStatus = "In Transit Full Qty";
+      switch (status) {
+        case DeliveryStatus.Shortclosed:
+          lineItemStatus = "In Transit ShortClosed";
+          break;
+        case DeliveryStatus.PartiallyDispatched:
+          lineItemStatus = "Partially Dispatched";
+          break;
+        default:
+          lineItemStatus = "In Transit Full Qty";
+          break;
+      }
+      console.log(lineItemStatus, "status");
       await LineItemModel.updateOne(
         { _id: currentPU.LI },
-        { $inc: { value_delivered: increment } },
+        {
+          $inc: { value_delivered: increment },
+          $set: { line_item_status: lineItemStatus },
+        },
       );
 
       const updatedPU = await ProgressUpdateModel.findByIdAndUpdate(
@@ -672,6 +689,63 @@ class ProgressUpdateRepo {
     } catch (error) {
       console.error(error, "Error updating Final Inspection");
       throw new Error("Failed to update Final Inspection");
+    }
+  }
+
+  public async createFeedBackByClient(id: any, data: any) {
+    try {
+      const progressUpdateModal: any =
+        await ProgressUpdateModel.findById(id).populate("LI");
+      const lineItemRef = progressUpdateModal.LI;
+
+      if (!lineItemRef)
+        throw new Error("LineItem reference not found in progress update");
+
+      const feedBackObj: any = {
+        line_item: lineItemRef._id,
+        prev_line_item_status: lineItemRef.line_item_status,
+        prev_supplier_readliness_date: lineItemRef.supplier_readliness_date,
+        prev_exw_date: lineItemRef.prev_exw_date,
+      };
+
+      const updatePU: any = {};
+      const updateLI: any = {};
+
+      if (data.status) {
+        feedBackObj.new_line_item_status = data.status;
+
+        if (
+          ["On Hold", "Deffered", "Cancelled", "Preponed"].includes(data.status)
+        ) {
+          updatePU.status = data.status;
+          updateLI.line_item_status = data.status;
+        }
+      }
+
+      if (data.supplier_readliness_date) {
+        feedBackObj.new_supplier_readliness_date =
+          data.supplier_readliness_date;
+        updateLI.supplier_readliness_date = data.supplier_readliness_date;
+      }
+
+      const createdFeed = await FeedBackTrackerModel.create(feedBackObj);
+
+      if (createdFeed) {
+        updatePU.$push = {
+          feed_back_tracker: createdFeed._id,
+        };
+      }
+
+      await ProgressUpdateModel.findByIdAndUpdate(id, updatePU, { new: true });
+
+      await LineItemModel.findByIdAndUpdate(
+        lineItemRef._id,
+        { $set: updateLI },
+        { new: true },
+      );
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Error while creating FeedBackTracker by client`);
     }
   }
 }

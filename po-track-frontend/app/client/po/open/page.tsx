@@ -1,5 +1,6 @@
 "use client";
 import BomLoadingCardSkeleton from "@/components/Card/BomLoadingCard";
+import CustomModal from "@/components/Modal/CustomModal";
 import { getData } from "@/core/api/apiHandler";
 import { progressUpdate } from "@/core/api/apiRoutes";
 import {
@@ -14,9 +15,13 @@ import {
   TableRow,
   TableCell,
   Chip,
+  Tooltip,
+  Button,
+  useDisclosure,
 } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Label } from "recharts";
 
 export default function OpenPo() {
   const [status, setStatus] = useState<any>("");
@@ -85,7 +90,6 @@ export default function OpenPo() {
   const tableLineItemHeaders = [
     { key: "lineItem", name: "Line Item" },
     { key: "partNumber", name: "Part Number" },
-    { key: "description", name: "Description" },
     { key: "exw_date", name: "EXW Date" },
     { key: "date_required", name: "Date Required" },
     { key: "line_item_type", name: "Line Item Type" },
@@ -93,15 +97,19 @@ export default function OpenPo() {
     { key: "Open_Qty", name: "Open Qty" },
     { key: "supplier", name: "Supplier" },
     { key: "rm_tracker", name: "RM Tracker" },
-    { key: "rm_actual_date", name: "RM Actual Date" },
-    { key: "rm_plan_date", name: "RM Plan Date" },
-    { key: "up_plan_date", name: "UP Plan Date" },
-    { key: "up_actual_date", name: "UP Actual Date" },
-    { key: "usp_plan_date", name: "USP Plan Date" },
-    { key: "usp_actual_date", name: "USP Actual Date" },
+    // { key: "rm_actual_date", name: "RM Actual Date" },
+    // { key: "rm_plan_date", name: "RM Plan Date" },
+    // { key: "up_plan_date", name: "UP Plan Date" },
+    // { key: "up_actual_date", name: "UP Actual Date" },
+    // { key: "usp_plan_date", name: "USP Plan Date" },
+    // { key: "usp_actual_date", name: "USP Actual Date" },
+    { key: "up_details", name: "UP Details" },
+    { key: "usp_details", name: "USP Details" },
     { key: "ssn", name: "Supplier Readliness Date" },
     { key: "delivery_status", name: "Delivery Status" },
+    { key: "action", name: "Action" },
   ];
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const deliveryStatusOptions = Object.keys(deliveryStatusStyles).map(
     (key) => ({
@@ -109,6 +117,8 @@ export default function OpenPo() {
       label: key,
     }),
   );
+
+  const [selectedLi, setSelectedLi] = useState<any>({});
   const statusStyles: Record<string, string> = {
     "not-started":
       "bg-gradient-to-r text-center text-sm from-gray-300 to-gray-500 text-black shadow-md shadow-gray-400 uppercase",
@@ -120,6 +130,58 @@ export default function OpenPo() {
 
   const getValue = (item: any, key: any) => {
     switch (key) {
+      case "UP Details":
+        if (item?.underProcess) {
+          return (
+            // <div>
+            //   <p>
+            //     {
+            //       new Date(item.underSpecialProcess?.actualDate)
+            //         .toLocaleString()
+            //         .split(",")[0]
+            //     }
+            //   </p>
+            // </div>
+            <Tooltip
+              content={
+                <div className="w-[200px] h-[50px] items-center rounded-full">
+                  {item?.underProcess ? (
+                    <div className="flex flex-col gap-4 cursor-pointer items-center">
+                      <p className="flex flex-row gap-4 justify-center items-center">
+                        <span>Actual Date</span>
+                        <span>
+                          {
+                            new Date(item?.underProcess?.actualDate)
+                              .toLocaleString()
+                              .split(",")[0]
+                          }
+                        </span>
+                      </p>
+                      <p className="flex  flex-row gap-4 justify-center items-center">
+                        <span>Plan Date</span>
+                        <span>
+                          {
+                            new Date(item?.underProcess?.planDate)
+                              .toLocaleString()
+                              .split(",")[0]
+                          }
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
+                    <Chip>Not Started</Chip>
+                  )}
+                </div>
+              }
+            >
+              <Chip size="sm" color="primary">
+                View Dates
+              </Chip>
+            </Tooltip>
+          );
+        } else {
+          return <Chip color="danger">Not Started</Chip>;
+        }
       case "UP Actual Date":
         if (item?.underProcess) {
           return (
@@ -206,15 +268,94 @@ export default function OpenPo() {
         } else {
           return <p className={statusStyles["not-started"]}>Not Started</p>;
         }
+      case "USP Details":
+        if (item?.underSpecialProcess) {
+          return (
+            // <div>
+            //   <p>
+            //     {
+            //       new Date(item.underSpecialProcess?.actualDate)
+            //         .toLocaleString()
+            //         .split(",")[0]
+            //     }
+            //   </p>
+            // </div>
+            <Tooltip
+              content={
+                <div className="flex flex-row w-[100px] h-[100px] items-center rounded-full">
+                  {item?.underSpecialProcess ? (
+                    <div className="flex flex-col gap-4 cursor-pointer items-center">
+                      <p>
+                        Actual Date{" "}
+                        {
+                          new Date(item?.underSpecialProcess?.actualDate)
+                            .toLocaleString()
+                            .split(",")[0]
+                        }
+                      </p>
+                      <p>
+                        Plan Date
+                        {
+                          new Date(item?.underSpecialProcess?.planDate)
+                            .toLocaleString()
+                            .split(",")[0]
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <Chip>Not Started</Chip>
+                  )}
+                </div>
+              }
+            >
+              <Chip size="sm" color="primary">
+                View Dates
+              </Chip>
+            </Tooltip>
+          );
+        } else {
+          return <Chip color="danger">Not Started</Chip>;
+        }
       case "RM Tracker":
         if (item?.rawMaterial) {
           return (
-            <Chip
-              size="sm"
-              className={statusStyles[item.rawMaterial.RMtracker]}
+            <Tooltip
+              content={
+                <div className="flex flex-row w-[100px] h-[100px] items-center rounded-full">
+                  {item?.rawMaterial ? (
+                    <div className="flex flex-col gap-4 cursor-pointer items-center">
+                      <p className={statusStyles[item.rawMaterial.RMtracker]}>
+                        Actual Date{" "}
+                        {
+                          new Date(item?.rawMaterial?.actualDate)
+                            .toLocaleString()
+                            .split(",")[0]
+                        }
+                      </p>
+                      <p className={statusStyles[item.rawMaterial.RMtracker]}>
+                        Plan Date
+                        {
+                          new Date(item?.rawMaterial?.planDate)
+                            .toLocaleString()
+                            .split(",")[0]
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <p className={statusStyles["not-started"]}>Not Started</p>
+                  )}
+                </div>
+              }
             >
-              {item.rawMaterial.RMtracker}
-            </Chip>
+              <Chip
+                size="sm"
+                className={
+                  statusStyles[item.rawMaterial?.RMtracker ?? "not-started"]
+                }
+              >
+                {item.rawMaterial?.RMtracker ?? "Not Started"}
+              </Chip>
+            </Tooltip>
           );
         } else {
           return (
@@ -226,7 +367,14 @@ export default function OpenPo() {
       case "Line Item":
         return <p>{item.LI.name}</p>;
       case "Part Number":
-        return <p>{item.LI.partNumber.name}</p>;
+        return (
+          <Tooltip
+            className="bg-blue-500"
+            content={`${item.LI.partNumber?.description}`}
+          >
+            <p className="cursor-pointer">{item.LI.partNumber.name}</p>
+          </Tooltip>
+        );
       case "Description":
         return <p>{item.LI.partNumber.description}</p>;
       case "EXW Date":
@@ -241,8 +389,6 @@ export default function OpenPo() {
         );
       case "Quantity":
         return <p>{item.qty}</p>;
-      case "Open Qty":
-        return <p>{item.openqty}</p>;
       case "Open Qty":
         return <p>{item.openqty}</p>;
       case "Supplier":
@@ -263,10 +409,45 @@ export default function OpenPo() {
             {item.delivery_status}
           </Chip>
         );
+      case "Action":
+        return (
+          <div className="flex flex-row gap-4 items-center">
+            <Chip className={deliveryStatusStyles[item.delivery_status]}>
+              {item?.LI?.line_item_status}
+            </Chip>
+            <Button
+              color="primary"
+              onPress={() => {
+                onOpen();
+                setSelectedLi(item);
+              }}
+            >
+              Update
+            </Button>
+          </div>
+        );
       default:
         return <h1>Rohan</h1>;
     }
   };
+  const line_item_status = [
+    {
+      key: "Preponed",
+      label: "Preponed",
+    },
+    {
+      key: "On Hold",
+      label: "On Hold",
+    },
+    {
+      key: "Deffered",
+      label: "Deffered",
+    },
+    {
+      key: "Cancelled",
+      label: "Cancelled",
+    },
+  ];
 
   if (isFetchingOpenPo) {
     return (
@@ -278,64 +459,92 @@ export default function OpenPo() {
     );
   } else {
     return (
-      <div className="flex flex-col items-center gap-4">
-        <Select
-          onChange={(e) => setStatus(e.target.value)}
-          className="w-1/4 flex flex-row items-start p-3"
-          label="Select an Line Item Status"
-          selectedKeys={[status]}
-        >
-          {deliveryStatusOptions.map((animal) => (
-            <SelectItem key={animal.key}>{animal.label}</SelectItem>
-          ))}
-        </Select>
-        {data.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8 text-xl font-bold">
-            <h1>No open purchase orders found.</h1>
-          </div>
-        ) : (
-          data.map((d: any, _: any) => {
-            const purchaseOrder = d.purchaseOrder;
-            const lineItems: any = d?.progressUpdates;
+      <>
+        <div className="flex flex-col items-center gap-4">
+          <Select
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-1/4 flex flex-row items-start p-3"
+            label="Select an Line Item Status"
+            selectedKeys={[status]}
+          >
+            {deliveryStatusOptions.map((animal) => (
+              <SelectItem key={animal.key}>{animal.label}</SelectItem>
+            ))}
+          </Select>
+          {data.length === 0 ? (
+            <div className="text-center text-gray-500 mt-8 text-xl font-bold">
+              <h1>No open purchase orders found.</h1>
+            </div>
+          ) : (
+            data.map((d: any, _: any) => {
+              const purchaseOrder = d.purchaseOrder;
+              const lineItems: any = d?.progressUpdates;
 
-            return (
-              <div className="flex flex-col w-full gap-4 p-6" key={d.poId}>
-                <Card className="flex w-full flex-row shadow-xl">
-                  <CardHeader className="flex flex-row w-full items-center gap-4 px-4">
-                    <h1>{purchaseOrder.name}</h1>
-                    <h1>
-                      Order Date{" "}
-                      {
-                        new Date(purchaseOrder.order_date)
-                          .toLocaleString()
-                          .split(",")[0]
-                      }
-                    </h1>
-                    <h1>Freight Term {purchaseOrder?.freight_term?.name}</h1>
-                    <h1>Payment Term {purchaseOrder?.payment_term?.name}</h1>
-                  </CardHeader>
-                </Card>
-                <Table>
-                  <TableHeader columns={tableLineItemHeaders}>
-                    {(column: { name: string }) => (
-                      <TableColumn key={column.name}>{column.name}</TableColumn>
-                    )}
-                  </TableHeader>
-                  <TableBody items={lineItems}>
-                    {(item: any) => (
-                      <TableRow key={item._id}>
-                        {(columnKey) => (
-                          <TableCell>{getValue(item, columnKey)}</TableCell>
-                        )}
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            );
-          })
-        )}
-      </div>
+              return (
+                <div className="flex flex-col w-full gap-4 p-6" key={d.poId}>
+                  <Card className="flex w-full flex-row shadow-xl">
+                    <CardHeader className="flex flex-row w-full items-center gap-4 px-4">
+                      <h1>{purchaseOrder.name}</h1>
+                      <h1>
+                        Order Date{" "}
+                        {
+                          new Date(purchaseOrder.order_date)
+                            .toLocaleString()
+                            .split(",")[0]
+                        }
+                      </h1>
+                      <h1>Freight Term {purchaseOrder?.freight_term?.name}</h1>
+                      <h1>Payment Term {purchaseOrder?.payment_term?.name}</h1>
+                    </CardHeader>
+                  </Card>
+                  <Table>
+                    <TableHeader columns={tableLineItemHeaders}>
+                      {(column: { name: string }) => (
+                        <TableColumn key={column.name}>
+                          {column.name}
+                        </TableColumn>
+                      )}
+                    </TableHeader>
+                    <TableBody items={lineItems}>
+                      {(item: any) => (
+                        <TableRow key={item._id}>
+                          {(columnKey) => (
+                            <TableCell>{getValue(item, columnKey)}</TableCell>
+                          )}
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <CustomModal
+          onOpenChange={onOpenChange}
+          isOpen={isOpen}
+          heading="View Line Item Status"
+          bottomContent={
+            <div className="flex items-center">
+              <Button color="danger">Close</Button>
+            </div>
+          }
+        >
+          <div className="flex flex-col items-center gap-4">
+            <h1>Current Line Item Status : </h1>
+            <Select
+              //  onChange={(e) => handleSet(e.target.value, "line_item_type")}
+              className="max-w-xs"
+              label="Select an Line Item Status"
+            >
+              {line_item_status.map((animal: any) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
+          </div>
+        </CustomModal>
+      </>
     );
   }
 }

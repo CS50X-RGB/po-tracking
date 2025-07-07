@@ -90,7 +90,7 @@ router.put(
   progressUpdateservice.updatePu.bind(progressUpdateservice),
 );
 router.put(
-  "/client/update/logistics/:logid",
+  "/client/update/logistic/:logid",
   progressUpdateservice.updateLogistics.bind(progressUpdateservice),
 );
 router.get(

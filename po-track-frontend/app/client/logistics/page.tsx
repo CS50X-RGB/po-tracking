@@ -189,7 +189,7 @@ export default function LogisticsPage() {
                     </p>
                   )}
                   <Link href={d?.tracking_link}>
-                    Tracking Link {d?.tracking_link.substring(0, 10)}
+                    Tracking Link {d?.tracking_link.substring(0, 3)}
                   </Link>
                   <p>Tracking Number {d?.tracking_number}</p>
                 </div>
@@ -249,8 +249,9 @@ export default function LogisticsPage() {
                 type="date"
                 label="Delivery Date"
                 value={
-                  state?.delivery_date
-                    ? new Date(state?.delivery_date)
+                  state?.delivery_date &&
+                  !isNaN(new Date(state.delivery_date).getTime())
+                    ? new Date(state.delivery_date)
                         .toISOString()
                         .substring(0, 10)
                     : ""
@@ -262,6 +263,7 @@ export default function LogisticsPage() {
                 className="max-w-md"
               />
             )}
+
           <Input
             label="Tracking Number"
             isRequired

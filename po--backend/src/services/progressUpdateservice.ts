@@ -599,7 +599,6 @@ class ProgressUpdateService {
     try {
       const { logid } = req.params;
       const { data } = req.body;
-      console.log(req.body, "Body");
       const updatedLogistics = await this.logisticsRepo.updateLogistics(
         logid,
         data,
