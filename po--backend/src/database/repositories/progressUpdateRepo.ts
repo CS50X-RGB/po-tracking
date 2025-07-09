@@ -237,7 +237,6 @@ class ProgressUpdateRepo {
         const updateData: Partial<rawMaterialInterface> = {
           thresholdDate,
         };
-
         if (updatedRawMaterial.actualDate) {
           updateData.RMtracker =
             updatedRawMaterial.actualDate <= thresholdDate
@@ -403,6 +402,7 @@ class ProgressUpdateRepo {
       if (status) {
         filter.delivery_status = status;
       }
+      console.log(filter, "filter");
       const progressUpdates = await ProgressUpdateModel.find(filter)
         .populate({
           path: "LI",
@@ -429,7 +429,7 @@ class ProgressUpdateRepo {
           ],
         })
         .populate(
-          "supplier  rawMaterial underProcess underSpecialProcess finalInspection cipl",
+          "supplier  rawMaterial underProcess underSpecialProcess finalInspection cipl feed_back_tracker",
         )
 
         .lean();
@@ -444,22 +444,14 @@ class ProgressUpdateRepo {
         if ("purchaseOrder" in (update.LI || {})) {
           purchaseOrder = (update.LI as any).purchaseOrder;
         }
-        //Skips the update if there's no purchase order.
         if (!purchaseOrder) continue;
-
-        //Gets the unique purchase order ID as a string
         const poId = purchaseOrder._id.toString();
-
-        //If this PO hasn’t been added yet to groupedByPO, create a new entry with:
         if (!groupedByPO[poId]) {
           groupedByPO[poId] = {
             purchaseOrder,
             progressUpdates: [],
           };
         }
-
-        //Add the current progress update to the progressUpdates array under the right PO.
-
         groupedByPO[poId].progressUpdates.push(update);
       }
       if (poId) {
@@ -691,21 +683,40 @@ class ProgressUpdateRepo {
       throw new Error("Failed to update Final Inspection");
     }
   }
+  public async getProgressUpdateByLineItem(liId: any) {
+    try {
+      return await ProgressUpdateModel.findOne({
+        LI: liId,
+      });
+    } catch (error: any) {
+      throw new Error(error);
+    }
+  }
 
-  public async createFeedBackByClient(id: any, data: any) {
+  public async createFeedBackByClient(
+    id: any,
+    data: any,
+    userId: any,
+    client: any,
+  ) {
     try {
       const progressUpdateModal: any =
         await ProgressUpdateModel.findById(id).populate("LI");
+      console.log(progressUpdateModal, "Modal");
       const lineItemRef = progressUpdateModal.LI;
 
       if (!lineItemRef)
         throw new Error("LineItem reference not found in progress update");
 
       const feedBackObj: any = {
-        line_item: lineItemRef._id,
+        line_item: id,
+        creadted_by: userId,
         prev_line_item_status: lineItemRef.line_item_status,
         prev_supplier_readliness_date: lineItemRef.supplier_readliness_date,
-        prev_exw_date: lineItemRef.prev_exw_date,
+        prev_exw_date: lineItemRef.exw_date,
+        prev_date_required_date: lineItemRef.date_required,
+        supplier: lineItemRef.supplier,
+        client,
       };
 
       const updatePU: any = {};
@@ -714,18 +725,51 @@ class ProgressUpdateRepo {
       if (data.status) {
         feedBackObj.new_line_item_status = data.status;
 
-        if (
-          ["On Hold", "Deffered", "Cancelled", "Preponed"].includes(data.status)
-        ) {
-          updatePU.status = data.status;
-          updateLI.line_item_status = data.status;
-        }
+        // if (
+        //   ["On Hold", "Deffered", "Cancelled", "Preponed"].includes(data.status)
+        // ) {
+        //   updatePU.status = data.status;
+        updateLI.line_item_status = data.status;
+        // }
+      }
+      if (data.date_required) {
+        feedBackObj.new_date_required_date = data.date_required;
+
+        const previous_date_required = feedBackObj.prev_date_required_date;
+        const new_date_required = new Date(data.date_required);
+        console.log(new_date_required, "New Date Required");
+        const prev_exw_date = feedBackObj.prev_exw_date;
+        console.log(previous_date_required, "Previos Date Required");
+        console.log(prev_exw_date, "Previous EXW Date");
+        const diffInMs =
+          new_date_required.getTime() - previous_date_required.getTime();
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+        const updated_exw_date = new Date(prev_exw_date);
+        updated_exw_date.setDate(updated_exw_date.getDate() + diffInDays);
+        console.log(updated_exw_date, "Updated EXW");
+        feedBackObj.new_exw_date = updated_exw_date;
+        // updateLI.exw_date = updated_exw_date;
+        // updateLI.date_required = new_date_required;
       }
 
       if (data.supplier_readliness_date) {
         feedBackObj.new_supplier_readliness_date =
           data.supplier_readliness_date;
-        updateLI.supplier_readliness_date = data.supplier_readliness_date;
+        const previous_exw_date = feedBackObj.prev_exw_date;
+        const previous_date_required = feedBackObj.prev_date_required_date;
+
+        if (previous_exw_date && previous_date_required) {
+          const diffMs =
+            previous_date_required.getTime() - previous_exw_date.getTime();
+          const diffInDays = diffMs / (1000 * 60 * 60 * 24);
+
+          const new_date_required = new Date(data.supplier_readliness_date);
+          new_date_required.setDate(new_date_required.getTime() + diffInDays);
+
+          feedBackObj.new_date_required = new_date_required;
+        }
+        // updateLI.supplier_readliness_date = data.supplier_readliness_date;
       }
 
       const createdFeed = await FeedBackTrackerModel.create(feedBackObj);
@@ -737,15 +781,229 @@ class ProgressUpdateRepo {
       }
 
       await ProgressUpdateModel.findByIdAndUpdate(id, updatePU, { new: true });
-
       await LineItemModel.findByIdAndUpdate(
         lineItemRef._id,
-        { $set: updateLI },
+        { updateLI },
         { new: true },
       );
     } catch (error) {
       console.error(error);
       throw new Error(`Error while creating FeedBackTracker by client`);
+    }
+  }
+
+  public async approveFeedBack(feedbackId: any, data: any, userId: any) {
+    try {
+      const feedbackEntity: any = await FeedBackTrackerModel.findById(
+        feedbackId,
+      ).populate([
+        {
+          path: "line_item",
+          populate: [
+            {
+              path: "LI",
+              populate: [
+                {
+                  path: "purchaseOrder",
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+      if (data.response === "Yes" && feedbackEntity) {
+        const line_item = feedbackEntity.line_item?.LI;
+        const progressUpdate = feedbackEntity.line_item._id;
+        const purchaseOrder = feedbackEntity.line_item.LI.purchaseOrder;
+        const update: any = {};
+        const updatePU: any = {};
+        if (feedbackEntity.new_line_item_status) {
+          update.line_item_status = feedbackEntity.new_line_item_status;
+          updatePU.delivery_status = feedbackEntity.new_line_item_status;
+        }
+        if (feedbackEntity.new_date_required) {
+          update.date_required = feedbackEntity.new_date_required;
+        }
+        if (feedbackEntity.new_exw_date) {
+          const rm = await this.checkEntity(progressUpdate, "RM");
+          if (rm) {
+            const order_date = purchaseOrder.order_date;
+            const exw_date = feedbackEntity.new_exw_date;
+            const interval = Math.ceil(
+              (exw_date.getTime() - order_date.getTime()) /
+                (1000 * 60 * 60 * 24),
+            );
+            const new_threshold_date = new Date(order_date);
+            new_threshold_date.setDate(
+              order_date.getDate() + Math.round(interval * 0.6) + 1,
+            );
+            const rmObject: any = await rawMaterial.findById(rm);
+            const updatedRM: any = {
+              thresholdDate: new_threshold_date,
+            };
+            if (rmObject) {
+              if (rmObject.actualDate) {
+                updatedRM.RMtracker =
+                  rmObject.actualDate <= new_threshold_date
+                    ? "on-track"
+                    : "delayed";
+              } else {
+                const today = new Date();
+                updatedRM.RMtracker =
+                  today <= new_threshold_date ? "on-track" : "delayed";
+              }
+              await rawMaterial.findByIdAndUpdate(rm, updatedRM);
+            }
+          }
+          const fi = await this.checkEntity(progressUpdate, "FI");
+          if (fi) {
+            const fiObject = await finalInspectionModel.findById(fi);
+            const new_inspectionThresHoldDate = new Date(
+              feedbackEntity.new_exw_date,
+            );
+            new_inspectionThresHoldDate.setDate(
+              new_inspectionThresHoldDate.getDate() - 1,
+            );
+
+            const updateFi: any = {
+              inspectionThreshHoldDate: new_inspectionThresHoldDate,
+            };
+            if (fiObject) {
+              if (
+                fiObject.QDLink &&
+                fiObject.isQualityCheckCompleted ==
+                  isQualityCheckCompletedEnum.YES
+              ) {
+                if (new Date() <= new_inspectionThresHoldDate) {
+                  updateFi.inspectionTracker = inspectionTracker.ON_TRACK;
+                } else if (new Date() > new_inspectionThresHoldDate) {
+                  updateFi.inspectionTracker = inspectionTracker.DELAYED;
+                }
+              }
+              await finalInspectionModel.findByIdAndUpdate(fi, updateFi);
+            }
+          }
+          update.exw_date = feedbackEntity.new_exw_date;
+        }
+        console.log("update", update, updatePU);
+        if (feedbackEntity.new_supplier_readliness_date) {
+          update.supplier_readliness_date =
+            feedbackEntity.new_supplier_readliness_date;
+        }
+        if (line_item.line_item_status === "Pending LI Change Approval") {
+          update.line_item_status = "Active";
+        }
+        const lineItemEntity = await LineItemModel.findByIdAndUpdate(
+          line_item,
+          update,
+          {
+            new: true,
+          },
+        );
+        console.log(lineItemEntity, "lineItem");
+        const progressUpdateEntity =
+          await ProgressUpdateModel.findByIdAndUpdate(
+            progressUpdate,
+            updatePU,
+            {
+              new: true,
+            },
+          );
+        feedbackEntity.set("response", data.response);
+        feedbackEntity.set("approved_by", userId);
+      } else if (data.response === "No" && feedbackEntity) {
+        feedbackEntity.set("response", data.response);
+        feedbackEntity.set("approved_by", userId);
+      }
+      await feedbackEntity.save();
+      return feedbackEntity;
+    } catch (error) {
+      throw new Error(`Error approving feedback object`);
+    }
+  }
+
+  public async getFeedBacksForSupplier(supplier: any, page: any, offset: any) {
+    try {
+      let filter: any = {
+        supplier,
+        response: { $in: [null, undefined] },
+        new_line_item_status: {
+          $ne: "Pending LI Change Approval",
+        },
+      };
+
+      const feedbackEntity = await FeedBackTrackerModel.find(filter)
+        .populate([
+          {
+            path: "line_item",
+            populate: [
+              {
+                path: "LI",
+                populate: [
+                  {
+                    path: "partNumber",
+                  },
+                  {
+                    path: "uom",
+                  },
+                  {
+                    path: "supplier",
+                  },
+                ],
+              },
+            ],
+          },
+        ])
+        .skip((page - 1) * offset)
+        .limit(offset);
+      const count = await FeedBackTrackerModel.find(filter).countDocuments();
+      return {
+        data: feedbackEntity,
+        total: count,
+      };
+    } catch (error) {
+      throw new Error(`Error while getting feedback tracker modal`);
+    }
+  }
+  public async getFeedBacksForClient(client: any, page: any, offset: any) {
+    try {
+      let filter: any = {
+        client,
+        response: { $in: [null, undefined] },
+        new_line_item_status: "Pending LI Change Approval",
+      };
+
+      const feedbackEntity = await FeedBackTrackerModel.find(filter)
+        .populate([
+          {
+            path: "line_item",
+            populate: [
+              {
+                path: "LI",
+                populate: [
+                  {
+                    path: "partNumber",
+                  },
+                  {
+                    path: "uom",
+                  },
+                  {
+                    path: "supplier",
+                  },
+                ],
+              },
+            ],
+          },
+        ])
+        .skip((page - 1) * offset)
+        .limit(offset);
+      const count = await FeedBackTrackerModel.find(filter).countDocuments();
+      return {
+        data: feedbackEntity,
+        total: count,
+      };
+    } catch (error) {
+      throw new Error(`Error while getting feedback tracker modal`);
     }
   }
 }

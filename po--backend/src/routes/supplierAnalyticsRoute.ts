@@ -4,12 +4,12 @@ import UserMiddleware from "../middleware/userMiddleware";
 
 const router = Router();
 const userMiddleware = new UserMiddleware();
-const SupplierDasboard = new SupplierDasboardService();
+const supplierDasboard = new SupplierDasboardService();
 
 router.get(
   "/analyticsData",
   userMiddleware.verify.bind(userMiddleware),
-  SupplierDasboard.getTotalPOData.bind(SupplierDasboard),
+  supplierDasboard.getTotalPOData.bind(supplierDasboard),
 );
 
 export default router;

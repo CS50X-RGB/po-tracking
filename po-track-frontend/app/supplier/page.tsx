@@ -5,11 +5,16 @@ import OTDGaugeChart from "@/components/Graphs/OTDGaugeChart";
 import DeliveryStatusPieChart from "@/components/Graphs/ProgressOverview";
 import { getData } from "@/core/api/apiHandler";
 import { analyticsRoute } from "@/core/api/apiRoutes";
-import { Spinner } from "@heroui/react";
+import { Chip, Spinner } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
+import { Bell } from "lucide-react";
 
 export default function Supplier() {
-  const { data: getSupplierAnalyticsData, isLoading } = useQuery({
+  const {
+    data: getSupplierAnalyticsData,
+    isLoading,
+    isFetched,
+  } = useQuery({
     queryKey: ["get-supplier-analytics"],
     queryFn: async () => {
       return await getData(analyticsRoute.getSupplierAnalytics, {});
@@ -19,6 +24,25 @@ export default function Supplier() {
   console.log("Supplier Analytics Data", getSupplierAnalyticsData);
   const result = getSupplierAnalyticsData?.data?.data ?? 0;
 
+  const deliveryStatusData = [
+    {
+      name: "Awaiting Pickup",
+      value: result?.deliveryStatusData?.awaitingPickup || 0,
+    },
+    {
+      name: "Ready and Packed",
+      value: result?.deliveryStatusData?.readyAndPacked || 0,
+    },
+    { name: "Cancelled", value: result?.deliveryStatusData?.cancelled || 0 },
+    {
+      name: "Ready for Inspection",
+      value: result?.deliveryStatusData?.readyForInspection || 0,
+    },
+    {
+      name: "Inprogress",
+      value: result?.deliveryStatusData?.inProgress || 0,
+    },
+  ];
   const statuses = [
     "New",
     "InProgress",
@@ -29,12 +53,6 @@ export default function Supplier() {
     "Cancelled",
   ];
 
-  //get dummy value for each status
-  const deliveryStatusData = statuses.map((status) => ({
-    name: status,
-    value: Math.floor(Math.random() * 50) + 1,
-  }));
-
   if (isLoading) {
     return (
       <div className="flex flex-row items-center justify-center h-[80vh]">
@@ -44,7 +62,17 @@ export default function Supplier() {
   } else {
     return (
       <div className="flex flex-col gap-4 w-full">
-        <h1 className="font-bold text-3xl p-2">Analytics Dashboard</h1>
+        <div className="flex flex-row items-center w-full justify-between p-4">
+          <h1 className="font-bold text-3xl p-2">Analytics Dashboard</h1>
+          <Chip
+            color="danger"
+            size="md"
+            endContent={<Bell size={18} />}
+            variant="flat"
+          >
+            Need Attention {result.needAttention}
+          </Chip>
+        </div>
         <div className="parent-div flex flex-row justify-center space-x-4 items-center">
           <div className="left-div  w-1/2 grid grid-cols-2 gap-4 p-2">
             <AnalyticsCard
@@ -89,10 +117,12 @@ export default function Supplier() {
             />
           </div>
           <div className="right-div w-1/2 grid grid-cols-2 gap-4 p-2 ">
-            <AnalyticsGraphCard
-              title="Progress Overview"
-              chart={<DeliveryStatusPieChart data={deliveryStatusData} />}
-            />
+            {isFetched && (
+              <AnalyticsGraphCard
+                title="Progress Overview"
+                chart={<DeliveryStatusPieChart data={deliveryStatusData} />}
+              />
+            )}
             <AnalyticsGraphCard
               title="OTD Graph"
               chart={<OTDGaugeChart percentage={85} />}

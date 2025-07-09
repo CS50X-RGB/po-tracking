@@ -1,6 +1,7 @@
 import mongoose, { ObjectId } from "mongoose";
 import PurchaseOrderModel from "../models/purchaseOrderModel";
 import progressUpdateModel from "../models/progressUpdateModel";
+import FeedbackTrackerModel from "../models/feedbackTrackerModel";
 import lineItemModel from "../models/lineItemModel";
 import DeliveryStatus from "../models/progressUpdateModel";
 
@@ -19,6 +20,24 @@ class AdminDashboardRepo {
     } catch (error) {
       console.log("Error getting total count", error);
       throw new Error(`Error in getting total PO Count`);
+    }
+  }
+
+  public async getFeedBack(supplier?: any) {
+    try {
+      const filter: any = {
+        response: { $in: [null, undefined] },
+      };
+
+      if (supplier) {
+        filter["supplier"] = supplier;
+      }
+
+      const getFeedBack =
+        await FeedbackTrackerModel.find(filter).countDocuments();
+      return getFeedBack;
+    } catch (error: any) {
+      throw new Error(`Error while getting feedback: ${error}`);
     }
   }
 
@@ -267,20 +286,27 @@ class AdminDashboardRepo {
     }
   }
 
-  public async getDeliveryStatusdata() {
+  public async getDeliveryStatusdata(supplier?: any, client?: any) {
     try {
+      let filter: any = {
+        delivery_status: {
+          $in: [
+            "AwaitingPickUp",
+            "Ready and Packed",
+            "Cancelled",
+            "Ready for Inspection",
+            "InProgress",
+          ],
+        },
+      };
+      if (supplier) {
+        filter.supplier = supplier;
+      }
+      console.log(filter, "filter");
       const result = await progressUpdateModel.aggregate([
         {
           $match: {
-            delivery_status: {
-              $in: [
-                "AwaitingPickUp",
-                "Ready and Packed",
-                "Cancelled",
-                "Ready for Inspection",
-                "InProgress",
-              ],
-            },
+            ...filter,
           },
         },
         {
@@ -290,7 +316,6 @@ class AdminDashboardRepo {
           },
         },
       ]);
-
       const data = {
         awaitingPickup: 0,
         readyAndPacked: 0,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import {
   PieChart,
@@ -109,7 +110,12 @@ export default function DeliveryStatusPieChart({
   data,
 }: DeliveryStatusPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const router = useRouter();
 
+  const onPieClick = (_: any, index: number) => {
+    const status = data[index].name;
+    router.push(`/client/po/open?status=${encodeURIComponent(status)}`);
+  };
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
   };
@@ -155,6 +161,7 @@ export default function DeliveryStatusPieChart({
             outerRadius={90}
             dataKey="value"
             onMouseEnter={onPieEnter}
+            onClick={onPieClick}
           >
             {data.map((_, index) => (
               <Cell
@@ -163,12 +170,6 @@ export default function DeliveryStatusPieChart({
               />
             ))}
           </Pie>
-          {/* <Legend
-            verticalAlign="top" // or "top", "left", "right"
-            align="center"
-            iconType="star" // "circle", "square", etc.
-            wrapperStyle={{ fontSize: "10px" }}
-          /> */}
         </PieChart>
       </ResponsiveContainer>
     </div>

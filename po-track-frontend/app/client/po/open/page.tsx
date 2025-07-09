@@ -1,7 +1,8 @@
 "use client";
+import { queryClient } from "@/app/providers";
 import BomLoadingCardSkeleton from "@/components/Card/BomLoadingCard";
 import CustomModal from "@/components/Modal/CustomModal";
-import { getData } from "@/core/api/apiHandler";
+import { getData, postData } from "@/core/api/apiHandler";
 import { progressUpdate } from "@/core/api/apiRoutes";
 import {
   Card,
@@ -18,12 +19,15 @@ import {
   Tooltip,
   Button,
   useDisclosure,
+  Input,
 } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Label } from "recharts";
+import { toast } from "sonner";
 
 export default function OpenPo() {
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<any>("");
   const {
     data: getOpenPo,
@@ -35,7 +39,25 @@ export default function OpenPo() {
       return getData(`${progressUpdate.getClientOpenPo}?status=${status}`, {});
     },
   });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const [data, setData] = useState<any>([]);
+
+  useEffect(() => {
+    const queryStatus = searchParams.get("status");
+
+    if (queryStatus) {
+      let formattedStatus = "";
+
+      if (queryStatus.toLowerCase() === "inprogress") {
+        formattedStatus = "InProgress";
+      } else if (queryStatus.toLowerCase() === "ready for inspection") {
+        formattedStatus = "Ready for Inspection";
+      }
+
+      setStatus(formattedStatus);
+    }
+  }, [searchParams]);
 
   const deliveryStatusStyles: Record<string, string> = {
     New: "bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-md shadow-blue-400",
@@ -127,8 +149,47 @@ export default function OpenPo() {
     delayed:
       "bg-gradient-to-r text-center from-red-400 to-red-600 text-sm text-white shadow-md shadow-red-500 uppercase",
   };
+  const [lidata, setliData] = useState<any>();
+  const handleSet = (e: string, key: string) => {
+    console.log(e, key);
+    setliData((prev: any) => ({
+      ...prev,
+      [key]: key === "date_required" ? new Date(e) : e,
+    }));
+  };
 
+  const addUpdate = useMutation({
+    mutationKey: ["addUpdate"],
+    mutationFn: (id: any) => {
+      return postData(
+        `${progressUpdate.clientLineItem}${id}`,
+        {},
+        { data: lidata },
+      );
+    },
+    onSuccess: (data: any) => {
+      console.log(data, "data");
+      toast.success("Line Item Updated", {
+        position: "top-right",
+        className: "bg-green-500",
+      });
+      queryClient.invalidateQueries();
+    },
+    onError: (error: any) => {
+      toast.error("Line Item Updation Failed", {
+        position: "top-right",
+      });
+    },
+    onMutate: () => {
+      setIsLoading(true);
+    },
+    onSettled: () => {
+      setIsLoading(false);
+    },
+  });
   const getValue = (item: any, key: any) => {
+    const feedBackTracker = item?.feed_back_tracker ?? [];
+
     switch (key) {
       case "UP Details":
         if (item?.underProcess) {
@@ -410,20 +471,33 @@ export default function OpenPo() {
           </Chip>
         );
       case "Action":
+        const isTrue = () =>
+          feedBackTracker?.length > 0 && !!feedBackTracker[0]?.response;
+
         return (
           <div className="flex flex-row gap-4 items-center">
             <Chip className={deliveryStatusStyles[item.delivery_status]}>
               {item?.LI?.line_item_status}
             </Chip>
-            <Button
-              color="primary"
-              onPress={() => {
-                onOpen();
-                setSelectedLi(item);
-              }}
-            >
-              Update
-            </Button>
+            {feedBackTracker.length > 0 && (
+              <Chip className="bg-red-400">
+                {feedBackTracker.length} Changes
+              </Chip>
+            )}
+            {item.delivery_status !== "Shortclosed" &&
+              item.delivery_status != "Dispatched" && (
+                <Button
+                  color="primary"
+                  size="sm"
+                  isDisabled={!isTrue()}
+                  onPress={() => {
+                    onOpen();
+                    setSelectedLi(item);
+                  }}
+                >
+                  Update
+                </Button>
+              )}
           </div>
         );
       default:
@@ -531,10 +605,16 @@ export default function OpenPo() {
             </div>
           }
         >
-          <div className="flex flex-col items-center gap-4">
-            <h1>Current Line Item Status : </h1>
+          <form
+            onSubmit={(e: any) => addUpdate.mutate(selectedLi?._id)}
+            className="flex flex-col items-center w-full gap-4"
+          >
+            <span className="flex flex-row items-center">
+              <h1>Current Line Item Status : </h1>
+              <Chip>{selectedLi?.LI?.line_item_status}</Chip>
+            </span>
             <Select
-              //  onChange={(e) => handleSet(e.target.value, "line_item_type")}
+              onChange={(e) => handleSet(e.target.value, "status")}
               className="max-w-xs"
               label="Select an Line Item Status"
             >
@@ -542,7 +622,29 @@ export default function OpenPo() {
                 <SelectItem key={animal.key}>{animal.label}</SelectItem>
               ))}
             </Select>
-          </div>
+            {lidata &&
+              lidata.status !== "On Hold" &&
+              lidata.status !== "Cancelled" && (
+                <Input
+                  type="date"
+                  label="New Date Required"
+                  value={
+                    lidata.date_required &&
+                    !isNaN(new Date(lidata.date_required).getTime())
+                      ? new Date(lidata.date_required)
+                          .toISOString()
+                          .substring(0, 10)
+                      : ""
+                  }
+                  onChange={(e) => handleSet(e.target.value, "date_required")}
+                  className="max-w-sm"
+                />
+              )}
+
+            <Button color="primary" isLoading={isLoading} type="submit">
+              Submit
+            </Button>
+          </form>
         </CustomModal>
       </>
     );

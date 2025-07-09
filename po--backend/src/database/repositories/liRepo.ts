@@ -133,6 +133,47 @@ class LineItemRepo {
     }
   }
 
+  public async changeSupplierReadlinessDate(
+    supplier_readliness_date: any,
+    liId: any,
+    userId: any,
+  ) {
+    try {
+      const updateLineItem: any = await LineItemModel.findByIdAndUpdate(
+        liId,
+        {
+          $set: { supplier_readliness_date },
+        },
+        {
+          new: true,
+        },
+      ).populate("purchaseOrder");
+      if (updateLineItem) {
+        const exw_date = updateLineItem?.exw_date;
+        const supplier_readiness_date =
+          updateLineItem?.supplier_readliness_date;
+        const client = updateLineItem.purchaseOrder?.client;
+        if (supplier_readiness_date >= exw_date) {
+          const progressUpdateId: any =
+            await this.progresUpdateRepo.getProgressUpdateByLineItem(liId);
+          console.log(progressUpdateId, "progressUpdate");
+          await this.progresUpdateRepo.createFeedBackByClient(
+            progressUpdateId._id,
+            {
+              supplier_readliness_date,
+              status: "Pending LI Change Approval",
+            },
+            userId,
+            client,
+          );
+        }
+      }
+      return updateLineItem ? updateLineItem?.toObject() : null;
+    } catch (error) {
+      throw new Error(`Error while changing supplier readliness date`);
+    }
+  }
+
   //get dispatched line items
   public async getDispatchedLineItems(
     page: number,

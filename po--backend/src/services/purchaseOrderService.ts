@@ -278,6 +278,29 @@ class PurchaseOrderService {
       return res.sendError(error, "Error while getting Dispatched LI", 400);
     }
   }
+
+  public async changeLineItemDate(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError(`User Not logged in`, "User not logged in", 400);
+      }
+      const { _id, ...other } = req.user;
+      const { liId } = req.params;
+      const { new_supplier_readliness_date } = req.body;
+      const lineItem = await this.liRepo.changeSupplierReadlinessDate(
+        new_supplier_readliness_date,
+        liId,
+        _id,
+      );
+      return res.sendFormatted(lineItem, "Line item Updated", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while changing line item supplier readliness date`,
+        "Erorr while chaging supplier readliness date",
+        400,
+      );
+    }
+  }
 }
 
 export default PurchaseOrderService;

@@ -84,4 +84,10 @@ router.get(
   poService.getDispatchedLI.bind(poService),
 );
 
+router.put(
+  "/li/supplier/change/date/:liId",
+  userMiddleware.verify.bind(userMiddleware),
+  poService.changeLineItemDate.bind(poService),
+);
+
 export default router;
