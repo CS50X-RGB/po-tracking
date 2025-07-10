@@ -1,15 +1,20 @@
 "use client";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
+import { useRouter } from "next/navigation";
 
 interface OTDGaugeChartProps {
-  percentage: number; // e.g., 85 for 85% OTD
+  percentage: number;
+  year: any;
 }
 
-export default function OTDGaugeChart({ percentage }: OTDGaugeChartProps) {
+export default function OTDGaugeChart({
+  percentage,
+  year,
+}: OTDGaugeChartProps) {
   const value = Math.min(percentage, 100);
   const data = [{ value }, { value: 100 - value }];
   const COLORS = ["#3b82f6", "#e5e7eb"]; // blue, gray
-
+  const router = useRouter();
   // Needle calculations
   const angle = 180 - (value / 100) * 180; // 0% -> 180deg, 100% -> 0deg
   const needleLength = 60; // adjust as needed
@@ -18,7 +23,7 @@ export default function OTDGaugeChart({ percentage }: OTDGaugeChartProps) {
     <div className="relative w-full flex  flex-col justify-center items-center">
       {/* Gauge */}
       <ResponsiveContainer width="100%" aspect={2}>
-        <PieChart>
+        <PieChart onClick={() => router.push(`/admin/otd?year=${year}`)}>
           <Pie
             data={data}
             startAngle={180}

@@ -128,6 +128,7 @@ export default function OpenPo() {
     { key: "up_details", name: "UP Details" },
     { key: "usp_details", name: "USP Details" },
     { key: "ssn", name: "Supplier Readliness Date" },
+    { kry: "prgress_tracker", name: "Progress Tracker" },
     { key: "delivery_status", name: "Delivery Status" },
     { key: "action", name: "Action" },
   ];
@@ -142,6 +143,8 @@ export default function OpenPo() {
 
   const [selectedLi, setSelectedLi] = useState<any>({});
   const statusStyles: Record<string, string> = {
+    on_track:
+      "bg-gradient-to-r text-center from-green-400 to-green-600 text-sm text-white shadow-md shadow-green-500 uppercase",
     "not-started":
       "bg-gradient-to-r text-center text-sm from-gray-300 to-gray-500 text-black shadow-md shadow-gray-400 uppercase",
     "on-track":
@@ -191,6 +194,12 @@ export default function OpenPo() {
     const feedBackTracker = item?.feed_back_tracker ?? [];
 
     switch (key) {
+      case "Progress Tracker":
+        return (
+          <Chip className={statusStyles[item.progressTracker]}>
+            {item.progressTracker}
+          </Chip>
+        );
       case "UP Details":
         if (item?.underProcess) {
           return (
@@ -471,8 +480,20 @@ export default function OpenPo() {
           </Chip>
         );
       case "Action":
-        const isTrue = () =>
-          feedBackTracker?.length > 0 && !!feedBackTracker[0]?.response;
+        const isTrue = () => {
+          if (feedBackTracker.length > 0) {
+            const length = feedBackTracker.length - 1;
+            const response = feedBackTracker[length]?.response ?? null;
+            console.log(response, "Response");
+            if (response) {
+              return true;
+            } else {
+              return false;
+            }
+          } else if (feedBackTracker.length === 0) {
+            return true;
+          }
+        };
 
         return (
           <div className="flex flex-row gap-4 items-center">

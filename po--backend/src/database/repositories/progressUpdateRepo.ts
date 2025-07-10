@@ -14,6 +14,7 @@ import {
 } from "../../interfaces/rawMaterialInterface";
 import ProgressUpdateModel, {
   DeliveryStatus,
+  ProgressTrackerEnum,
 } from "../models/progressUpdateModel";
 import { underProcessInterface } from "../../interfaces/underProcessInterface";
 import { underSpecialProcessInterface } from "../../interfaces/underSpecialProcessInterface";
@@ -117,7 +118,7 @@ class ProgressUpdateRepo {
           select: "order_date",
         },
       });
-
+      let progressTracker = ProgressTrackerEnum.NOT_STARTED;
       if (progressUpdate) {
         const exwDate = progressUpdate?.LI?.exw_date;
         const orderDate = progressUpdate?.LI?.purchaseOrder?.order_date;
@@ -129,19 +130,24 @@ class ProgressUpdateRepo {
         const thresholdDate = new Date(orderDate);
         thresholdDate.setDate(orderDate.getDate() + interval60Percent);
         console.log(thresholdDate, "Threshold Date");
-
         rawMaterialData.thresholdDate = thresholdDate;
 
         if (rawMaterialData.actualDate) {
           if (rawMaterialData.actualDate <= thresholdDate) {
             rawMaterialData.RMtracker = RMtracker.ON_TRACK;
+            progressTracker = ProgressTrackerEnum.ON_TRACK;
           } else {
             rawMaterialData.RMtracker = RMtracker.DELAYED;
+            progressTracker = ProgressTrackerEnum.DELAYED;
           }
         } else {
           const today = new Date();
           rawMaterialData.RMtracker =
             today > thresholdDate ? RMtracker.DELAYED : RMtracker.ON_TRACK;
+          progressTracker =
+            today > thresholdDate
+              ? ProgressTrackerEnum.DELAYED
+              : ProgressTrackerEnum.ON_TRACK;
         }
       }
 
@@ -150,6 +156,7 @@ class ProgressUpdateRepo {
       await ProgressUpdateModel.findByIdAndUpdate(id, {
         rawMaterial: rawMaterialObj._id,
         delivery_status: DeliveryStatus.InProgress,
+        progressTracker: progressTracker,
       });
 
       return rawMaterialObj?.toObject();
@@ -213,6 +220,7 @@ class ProgressUpdateRepo {
           select: "order_date",
         },
       });
+      let progressUpdateTracker = progressUpdate.progressTracker;
       if (
         progressUpdate?.delivery_status === DeliveryStatus.PartiallyDispatched
       ) {
@@ -242,12 +250,31 @@ class ProgressUpdateRepo {
             updatedRawMaterial.actualDate <= thresholdDate
               ? RMtracker.ON_TRACK
               : RMtracker.DELAYED;
+          progressUpdateTracker =
+            updatedRawMaterial.actualDate <= thresholdDate
+              ? ProgressTrackerEnum.ON_TRACK
+              : ProgressTrackerEnum.DELAYED;
         } else {
           const today = new Date();
           updateData.RMtracker =
             today <= thresholdDate ? RMtracker.ON_TRACK : RMtracker.DELAYED;
+          progressUpdateTracker =
+            today <= thresholdDate
+              ? ProgressTrackerEnum.ON_TRACK
+              : ProgressTrackerEnum.DELAYED;
+        }
+        const fi: any = await this.checkEntity(progressUpdate._id, "FI");
+        if (fi) {
+          if (fi.inspectionTracker === inspectionTracker.DELAYED) {
+            progressUpdateTracker = ProgressTrackerEnum.DELAYED;
+          } else if (fi.inspectionTracker === inspectionTracker.ON_TRACK) {
+            progressUpdateTracker = ProgressTrackerEnum.ON_TRACK;
+          }
         }
         await rawMaterial.findByIdAndUpdate(rawMaterialId, updateData);
+        await ProgressUpdateModel.findByIdAndUpdate(progressUpdate._id, {
+          progressTracker: progressUpdateTracker,
+        });
       }
 
       return await rawMaterial.findById(rawMaterialId);
@@ -620,7 +647,9 @@ class ProgressUpdateRepo {
           select: "order_date",
         },
       });
+      let progressUpdateStatus = progressUpdate.progressTracker;
       if (progressUpdate) {
+        let progressUpdateStatus = progressUpdate.progressTracker;
         const exwDate = progressUpdate?.LI?.exw_date;
         if (exwDate instanceof Date && !isNaN(exwDate.getTime())) {
           const inspectionDate = new Date(exwDate);
@@ -634,10 +663,12 @@ class ProgressUpdateRepo {
         ) {
           if (new Date() <= finalInspectionData.inspectionThreshHoldDate) {
             finalInspectionData.inspectionTracker = inspectionTracker.ON_TRACK;
+            progressUpdateStatus = ProgressTrackerEnum.ON_TRACK;
           } else if (
             new Date() > finalInspectionData.inspectionThreshHoldDate
           ) {
             finalInspectionData.inspectionTracker = inspectionTracker.DELAYED;
+            progressUpdateStatus = ProgressTrackerEnum.DELAYED;
           }
         }
       }
@@ -646,6 +677,7 @@ class ProgressUpdateRepo {
       await ProgressUpdateModel.findByIdAndUpdate(id, {
         finalInspection: finalInspection._id,
         delivery_status: DeliveryStatus.ReadyForInspection,
+        progressTracker: progressUpdateStatus,
       });
       return finalInspection?.toObject();
     } catch (error) {
@@ -660,17 +692,34 @@ class ProgressUpdateRepo {
     data: Partial<finalInspectionInterface>,
   ) {
     try {
-      const progressUpdate = await ProgressUpdateModel.findOne({
+      const progressUpdate: any = await ProgressUpdateModel.findOne({
         finalInspection: finalInspectionId,
       });
+      const finalInspectionData: any =
+        await finalInspectionModel.findById(finalInspectionId);
+      let progressUpdateStatus = progressUpdate.progressTracker;
+      if (
+        finalInspectionData.QDLink &&
+        finalInspectionData.isQualityCheckCompleted ==
+          isQualityCheckCompletedEnum.YES
+      ) {
+        if (new Date() <= finalInspectionData.inspectionThreshHoldDate) {
+          finalInspectionData.inspectionTracker = inspectionTracker.ON_TRACK;
+          progressUpdateStatus = ProgressTrackerEnum.ON_TRACK;
+        } else if (new Date() > finalInspectionData.inspectionThreshHoldDate) {
+          finalInspectionData.inspectionTracker = inspectionTracker.DELAYED;
+          progressUpdateStatus = ProgressTrackerEnum.DELAYED;
+        }
+      }
+      progressUpdate.progressTracker = progressUpdateStatus;
 
       if (
         progressUpdate &&
         progressUpdate.delivery_status === DeliveryStatus.InProgress
       ) {
         progressUpdate.delivery_status = DeliveryStatus.ReadyAndPacked;
-        await progressUpdate.save();
       }
+      await progressUpdate.save();
       return await finalInspectionModel.findByIdAndUpdate(
         finalInspectionId,
         data,

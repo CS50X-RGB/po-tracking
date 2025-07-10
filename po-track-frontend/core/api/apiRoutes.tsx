@@ -109,4 +109,5 @@ export const analyticsRoute = {
   getAdminAnalytics: "/adminAnalytics/totalPOCount",
   getSupplierAnalytics: "/supplierAnalytics/analyticsData",
   getClientAnalytics: "/clientAnalytics/analyticsData",
+  getOTD: "/adminAnalytics/otd/",
 };

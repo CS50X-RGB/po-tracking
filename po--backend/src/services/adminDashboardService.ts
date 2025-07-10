@@ -16,7 +16,7 @@ class AdminDashboardService {
       const dispatchedLIData = await this.adminDashboard.getLIDispatchedData();
       const deliveryStatusData =
         await this.adminDashboard.getDeliveryStatusdata();
-
+      const avgOTD = await this.adminDashboard.getAvgOtd();
       const result = {
         totalPOCount: totalCount,
         totalPOValue: totalPOvalue,
@@ -24,9 +24,9 @@ class AdminDashboardService {
         lineItemData: lineItemData,
         dispatchedLIData: dispatchedLIData,
         deliveryStatusData: deliveryStatusData,
+        otd: avgOTD,
       };
 
-      //console.log(totalCount);
       return res.sendFormatted(
         result,
         `Total Count Fetched Successfully ${totalCount} and total PO value is ${totalPOvalue} and total open PO count is ${openPOData}`,
@@ -35,6 +35,41 @@ class AdminDashboardService {
     } catch (error) {
       console.log("erorr getting total PO count");
       return res.sendError("error", "error", 500);
+    }
+  }
+
+  public async getFullOtd(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError(
+          `Error while logging`,
+          "Error while getting graph",
+          400,
+        );
+      }
+      const { year }: any = req.params;
+      const { supplier, ...other }: any = req.user;
+      const years =
+        year === "NULL"
+          ? [
+              new Date().getFullYear(),
+              new Date().getFullYear() - 1,
+              new Date().getFullYear() - 2,
+            ]
+          : [year];
+      let response = {};
+      if (supplier === "NULL") {
+        response = await this.adminDashboard.getFullOtd(years);
+      } else {
+        response = await this.adminDashboard.getFullOtd(years, supplier);
+      }
+      return res.sendArrayFormatted(response, "OTD Graph", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while getting graph`,
+        "Error whilte getting graph",
+        400,
+      );
     }
   }
 }

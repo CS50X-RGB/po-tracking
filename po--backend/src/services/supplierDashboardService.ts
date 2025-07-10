@@ -24,6 +24,7 @@ class SupplierDasboardService {
       const needAttention = await this.adminDashboard.getFeedBack(supplierId);
       const deliveryStatusData =
         await this.adminDashboard.getDeliveryStatusdata(supplierId, null);
+      const avgOtd = await this.adminDashboard.getAvgOtd(undefined, supplierId);
       const result = {
         totalPOData: totalPOData,
         openPOData: openPOData,
@@ -31,6 +32,7 @@ class SupplierDasboardService {
         dispatchedLIData: dispatchedLIData,
         needAttention: needAttention,
         deliveryStatusData: deliveryStatusData,
+        avgOtd,
       };
 
       return res.sendFormatted(

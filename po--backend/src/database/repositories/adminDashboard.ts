@@ -340,6 +340,121 @@ class AdminDashboardRepo {
       throw new Error("Failed to get delivery status data");
     }
   }
+
+  public async getFullOtd(years: number[], supplier?: any) {
+    try {
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      const output: any = {};
+
+      for (const year of years) {
+        // const months = year === currentYear ? currentMonth : 12;
+        const months = 12;
+        const monthsOtd: Record<number, number> = {};
+
+        for (let month = 1; month <= months; month++) {
+          // Fix month for zero-based Date constructor
+          const startDate = new Date(year, month - 1, 1);
+          const endDate = new Date(year, month, 0);
+
+          const progressUpdates = await progressUpdateModel
+            .find()
+            .populate({
+              path: "LI",
+              match: {
+                exw_date: { $gte: startDate, $lte: endDate },
+              },
+              select: "exw_date",
+            })
+            .lean();
+
+          const matched = progressUpdates.filter((p) => p.LI !== null);
+
+          let dispatchedCount = matched.filter(
+            (p) => p.delivery_status === "Dispatched",
+          );
+
+          if (supplier) {
+            dispatchedCount = dispatchedCount.filter(
+              (d) => d.supplier.toString() === supplier.toString(),
+            );
+          }
+
+          const totalCount = matched.length;
+
+          const otdPercentage =
+            totalCount > 0
+              ? Math.round((dispatchedCount.length / totalCount) * 100)
+              : 0;
+
+          monthsOtd[month] = otdPercentage;
+        }
+        const avgOtd = await this.getAvgOtd(year, null);
+        output[year] = {
+          monthsOtd,
+          avgOtd: avgOtd,
+        };
+      }
+
+      return output;
+    } catch (error: any) {
+      throw new Error(`Failed to get Full Otd: ${error.message}`);
+    }
+  }
+
+  public async getAvgOtd(year?: number, supplier?: any): Promise<number> {
+    try {
+      const currentYear = new Date().getFullYear();
+      const years = year
+        ? [year]
+        : [currentYear, currentYear - 1, currentYear - 2];
+      let otdSum = 0;
+
+      for (const selectedYear of years) {
+        const jan1 = new Date(`${selectedYear}-01-01`);
+        const isCurrentYear = selectedYear === currentYear;
+        const endDate = isCurrentYear
+          ? new Date(currentYear, new Date().getMonth() + 1, 0)
+          : new Date(`${selectedYear}-12-31`);
+        const progressUpdates = await progressUpdateModel
+          .find()
+          .populate({
+            path: "LI",
+            match: {
+              exw_date: { $gte: jan1, $lte: endDate },
+            },
+            select: "exw_date",
+          })
+          .lean();
+
+        const matched = progressUpdates.filter((p) => p.LI !== null);
+
+        let dispatchedCount = matched.filter(
+          (p) => p.delivery_status === "Dispatched",
+        );
+        console.log(dispatchedCount, "dispatched");
+        if (supplier) {
+          dispatchedCount = dispatchedCount.filter(
+            (d) => d.supplier === supplier,
+          );
+        }
+
+        const totalCount = matched.length;
+
+        const otdPercentage =
+          totalCount > 0
+            ? Math.round((dispatchedCount.length / totalCount) * 100)
+            : 0;
+
+        otdSum += otdPercentage;
+      }
+
+      const finalAvg = otdSum / years.length;
+      return Math.round(finalAvg);
+    } catch (error: any) {
+      throw new Error(`${error.message} during getAvgOtd`);
+    }
+  }
 }
 
 export default AdminDashboardRepo;

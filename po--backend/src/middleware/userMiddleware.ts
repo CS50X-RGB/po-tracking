@@ -77,23 +77,20 @@ class UserMiddleware {
       }
       const token = authHeader.split(" ")[1];
       const decoded: any = await verifyToken(token);
-      if (decoded.role !== "ADMIN") {
-        let obj: any = {
-          _id: decoded._id,
-          name: decoded.name,
-          client: decoded.client,
+
+      let obj: any = {
+        _id: decoded._id,
+        name: decoded.name,
+        client: decoded.client,
+      };
+      if (decoded.supplier) {
+        obj = {
+          ...obj,
+          supplier: decoded.supplier,
         };
-        if (decoded.supplier) {
-          obj = {
-            ...obj,
-            supplier: decoded.supplier,
-          };
-        }
-        req.user = obj;
-        next();
-      } else {
-        return res.sendError(null, "Your not Admin", 400);
       }
+      req.user = obj;
+      next();
     } catch (error: any) {
       throw new Error(`Error while Verifying`);
     }

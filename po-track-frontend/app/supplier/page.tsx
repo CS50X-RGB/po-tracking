@@ -5,9 +5,10 @@ import OTDGaugeChart from "@/components/Graphs/OTDGaugeChart";
 import DeliveryStatusPieChart from "@/components/Graphs/ProgressOverview";
 import { getData } from "@/core/api/apiHandler";
 import { analyticsRoute } from "@/core/api/apiRoutes";
-import { Chip, Spinner } from "@heroui/react";
+import { Chip, Select, SelectItem, Spinner } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
+import { useState } from "react";
 
 export default function Supplier() {
   const {
@@ -20,6 +21,7 @@ export default function Supplier() {
       return await getData(analyticsRoute.getSupplierAnalytics, {});
     },
   });
+  const [year, setYear] = useState<any>("NULL");
 
   console.log("Supplier Analytics Data", getSupplierAnalyticsData);
   const result = getSupplierAnalyticsData?.data?.data ?? 0;
@@ -52,6 +54,20 @@ export default function Supplier() {
     "Preponed",
     "Cancelled",
   ];
+  const years = [
+    {
+      key: String(new Date().getFullYear()),
+      label: String(new Date().getFullYear()),
+    },
+    {
+      key: String(new Date().getFullYear() - 1),
+      label: String(new Date().getFullYear() - 1),
+    },
+    {
+      key: String(new Date().getFullYear() - 2),
+      label: String(new Date().getFullYear() - 2),
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -62,6 +78,16 @@ export default function Supplier() {
   } else {
     return (
       <div className="flex flex-col gap-4 w-full">
+        <Select
+          onChange={(e) => setYear(e.target.value)}
+          className="max-w-xs"
+          label="Select Year"
+          selectedKeys={[year.toString()]}
+        >
+          {years.map((animal: any) => (
+            <SelectItem key={animal.key}>{animal.label}</SelectItem>
+          ))}
+        </Select>
         <div className="flex flex-row items-center w-full justify-between p-4">
           <h1 className="font-bold text-3xl p-2">Analytics Dashboard</h1>
           <Chip
@@ -73,6 +99,7 @@ export default function Supplier() {
             Need Attention {result.needAttention}
           </Chip>
         </div>
+
         <div className="parent-div flex flex-row justify-center space-x-4 items-center">
           <div className="left-div  w-1/2 grid grid-cols-2 gap-4 p-2">
             <AnalyticsCard
@@ -125,7 +152,7 @@ export default function Supplier() {
             )}
             <AnalyticsGraphCard
               title="OTD Graph"
-              chart={<OTDGaugeChart percentage={85} />}
+              chart={<OTDGaugeChart year={year} percentage={result.avgOtd} />}
             />
           </div>
         </div>
