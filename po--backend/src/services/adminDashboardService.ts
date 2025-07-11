@@ -9,14 +9,107 @@ class AdminDashboardService {
 
   public async getTotalPOCount(req: Request, res: Response) {
     try {
-      const totalCount = await this.adminDashboard.getTotalPOCount();
-      const totalPOvalue = await this.adminDashboard.getTotalPOValue();
-      const openPOData = await this.adminDashboard.getOpenPO();
-      const lineItemData = await this.adminDashboard.getlineItem();
-      const dispatchedLIData = await this.adminDashboard.getLIDispatchedData();
-      const deliveryStatusData =
-        await this.adminDashboard.getDeliveryStatusdata();
-      const avgOTD = await this.adminDashboard.getAvgOtd();
+      let { supplier, year }: any = req.query;
+      const isSupplier = supplier !== "NULL";
+      const isYear = year !== "NULL";
+      console.log(supplier, year, req.query, "SUPPLIER");
+      let totalCount,
+        totalPOvalue,
+        openPOData,
+        lineItemData,
+        dispatchedLIData,
+        deliveryStatusData,
+        avgOTD;
+
+      if (isYear && isSupplier) {
+        totalCount = await this.adminDashboard.getTotalPOCount(
+          year,
+          undefined,
+          supplier,
+        );
+        totalPOvalue = await this.adminDashboard.getTotalPOValue(
+          year,
+          undefined,
+          supplier,
+        );
+        openPOData = await this.adminDashboard.getOpenPO(
+          year,
+          supplier,
+          undefined,
+        );
+        lineItemData = await this.adminDashboard.getlineItem(
+          year,
+          supplier,
+          undefined,
+        );
+        dispatchedLIData = await this.adminDashboard.getLIDispatchedData(
+          year,
+          supplier,
+          undefined,
+        );
+        deliveryStatusData = await this.adminDashboard.getDeliveryStatusdata(
+          supplier,
+          undefined,
+          year,
+        );
+        avgOTD = await this.adminDashboard.getAvgOtd(year, supplier);
+      } else if (isYear) {
+        // Only Year
+        totalCount = await this.adminDashboard.getTotalPOCount(year);
+        totalPOvalue = await this.adminDashboard.getTotalPOValue(year);
+        openPOData = await this.adminDashboard.getOpenPO(year);
+        lineItemData = await this.adminDashboard.getlineItem(year);
+        dispatchedLIData = await this.adminDashboard.getLIDispatchedData(year);
+        deliveryStatusData = await this.adminDashboard.getDeliveryStatusdata(
+          null,
+          null,
+          year,
+        );
+        avgOTD = await this.adminDashboard.getAvgOtd(year);
+      } else if (isSupplier) {
+        // Only Supplier
+        totalCount = await this.adminDashboard.getTotalPOCount(
+          undefined,
+          undefined,
+          supplier,
+        );
+        totalPOvalue = await this.adminDashboard.getTotalPOValue(
+          undefined,
+          undefined,
+          supplier,
+        );
+        openPOData = await this.adminDashboard.getOpenPO(undefined, supplier);
+        lineItemData = await this.adminDashboard.getlineItem(
+          undefined,
+          supplier,
+          undefined,
+        );
+        dispatchedLIData = await this.adminDashboard.getLIDispatchedData(
+          undefined,
+          supplier,
+          undefined,
+        );
+        deliveryStatusData = await this.adminDashboard.getDeliveryStatusdata(
+          supplier,
+          null,
+          undefined,
+        );
+        avgOTD = await this.adminDashboard.getAvgOtd(
+          undefined,
+          supplier,
+          undefined,
+        );
+      } else {
+        // Both "NULL" — fallback to overall totals
+        totalCount = await this.adminDashboard.getTotalPOCount();
+        totalPOvalue = await this.adminDashboard.getTotalPOValue();
+        openPOData = await this.adminDashboard.getOpenPO();
+        lineItemData = await this.adminDashboard.getlineItem();
+        dispatchedLIData = await this.adminDashboard.getLIDispatchedData();
+        deliveryStatusData = await this.adminDashboard.getDeliveryStatusdata();
+        avgOTD = await this.adminDashboard.getAvgOtd();
+      }
+
       const result = {
         totalPOCount: totalCount,
         totalPOValue: totalPOvalue,

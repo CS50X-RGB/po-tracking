@@ -14,25 +14,61 @@ class SupplierDasboardService {
 
   public async getTotalPOData(req: Request, res: Response) {
     try {
+      const { year }: any = req.query;
       const supplierId = new mongoose.Types.ObjectId(req.user?.supplier);
-      const totalPOData =
-        await this.supplierDashboard.getTotalPOData(supplierId);
-      const openPOData = await this.adminDashboard.getOpenPO(supplierId);
-      const lineItemData = await this.adminDashboard.getlineItem(supplierId);
-      const dispatchedLIData =
-        await this.adminDashboard.getLIDispatchedData(supplierId);
-      const needAttention = await this.adminDashboard.getFeedBack(supplierId);
-      const deliveryStatusData =
-        await this.adminDashboard.getDeliveryStatusdata(supplierId, null);
-      const avgOtd = await this.adminDashboard.getAvgOtd(undefined, supplierId);
+      let totalCount,
+        totalPOvalue,
+        openPOData,
+        lineItemData,
+        dispatchedLIData,
+        deliveryStatusData,
+        needAttention,
+        avgOTD;
+      if (year !== "NULL") {
+        totalCount = await this.supplierDashboard.getTotalPOData(
+          supplierId,
+          year,
+        );
+        openPOData = await this.adminDashboard.getOpenPO(year, supplierId);
+        lineItemData = await this.adminDashboard.getlineItem(year, supplierId);
+        dispatchedLIData = await this.adminDashboard.getLIDispatchedData(
+          year,
+          supplierId,
+        );
+        needAttention = await this.adminDashboard.getFeedBack(supplierId);
+        deliveryStatusData = await this.adminDashboard.getDeliveryStatusdata(
+          supplierId,
+          null,
+          year,
+        );
+        avgOTD = await this.adminDashboard.getAvgOtd(year, supplierId);
+      } else {
+        totalCount = await this.supplierDashboard.getTotalPOData(supplierId);
+        openPOData = await this.adminDashboard.getOpenPO(undefined, supplierId);
+        lineItemData = await this.adminDashboard.getlineItem(
+          undefined,
+          supplierId,
+        );
+        dispatchedLIData = await this.adminDashboard.getLIDispatchedData(
+          undefined,
+          supplierId,
+        );
+        needAttention = await this.adminDashboard.getFeedBack(supplierId);
+        deliveryStatusData = await this.adminDashboard.getDeliveryStatusdata(
+          supplierId,
+          null,
+        );
+        avgOTD = await this.adminDashboard.getAvgOtd(undefined, supplierId);
+      }
+
       const result = {
-        totalPOData: totalPOData,
+        totalPOData: totalCount,
         openPOData: openPOData,
         lineItemData: lineItemData,
         dispatchedLIData: dispatchedLIData,
         needAttention: needAttention,
         deliveryStatusData: deliveryStatusData,
-        avgOtd,
+        avgOtd: avgOTD,
       };
 
       return res.sendFormatted(

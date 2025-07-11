@@ -11,17 +11,20 @@ import { Bell } from "lucide-react";
 import { useState } from "react";
 
 export default function Supplier() {
+  const [year, setYear] = useState<any>("NULL");
   const {
     data: getSupplierAnalyticsData,
     isLoading,
     isFetched,
   } = useQuery({
-    queryKey: ["get-supplier-analytics"],
+    queryKey: ["get-supplier-analytics", year],
     queryFn: async () => {
-      return await getData(analyticsRoute.getSupplierAnalytics, {});
+      return await getData(
+        `${analyticsRoute.getSupplierAnalytics}?year=${year}`,
+        {},
+      );
     },
   });
-  const [year, setYear] = useState<any>("NULL");
 
   console.log("Supplier Analytics Data", getSupplierAnalyticsData);
   const result = getSupplierAnalyticsData?.data?.data ?? 0;
@@ -45,15 +48,7 @@ export default function Supplier() {
       value: result?.deliveryStatusData?.inProgress || 0,
     },
   ];
-  const statuses = [
-    "New",
-    "InProgress",
-    "Ready and Packed",
-    "Partially Dispatched",
-    "Dispatched",
-    "Preponed",
-    "Cancelled",
-  ];
+
   const years = [
     {
       key: String(new Date().getFullYear()),

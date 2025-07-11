@@ -4,7 +4,11 @@ import React from "react";
 
 import CustomTable from "@/components/CustomTable";
 import { getData } from "@/core/api/apiHandler";
-import { accountRoutes, analyticsRoute } from "@/core/api/apiRoutes";
+import {
+  accountRoutes,
+  analyticsRoute,
+  masterRoutes,
+} from "@/core/api/apiRoutes";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -23,6 +27,7 @@ import DeliveryStatusPieChart from "@/components/Graphs/ProgressOverview";
 export default function Page() {
   const [page, setPage] = useState<number>(1);
   const [year, setYear] = useState<any>("NULL");
+  const [supplier, setSupplier] = useState<any>("NULL");
   const [total, setTotal] = useState<number>(1);
 
   const {
@@ -39,19 +44,28 @@ export default function Page() {
     },
   });
 
+  const { data: getSuppliers } = useQuery({
+    queryKey: ["getSuppliers"],
+    queryFn: () => {
+      return getData(`${masterRoutes.getSupplier}?search=`, {});
+    },
+  });
+
   //get analyticsRoutes
   const {
     data: getAnalyticsData,
     isLoading,
     isFetched: isFetchedAnalytics,
   } = useQuery({
-    queryKey: ["get-analytics"],
+    queryKey: ["get-analytics", supplier, year],
     queryFn: async () => {
-      return await getData(analyticsRoute.getAdminAnalytics, {});
+      return await getData(
+        `${analyticsRoute.getAdminAnalytics}?supplier=${supplier}&year=${year}`,
+        {},
+      );
     },
   });
 
-  console.log(getAnalyticsData);
   useEffect(() => {
     if (isFetched) {
       setTotal(Math.ceil(getAllUsers?.data.data.count / 5));
@@ -93,8 +107,8 @@ export default function Page() {
       label: String(new Date().getFullYear() - 2),
     },
   ];
+  let suppliersData = [];
 
-  console.log(result);
   if (isFetching || isLoading) {
     return (
       <div className="flex flex-row items-center justify-center h-[80vh]">
@@ -102,19 +116,33 @@ export default function Page() {
       </div>
     );
   } else {
+    suppliersData = getSuppliers?.data?.data?.data ?? [];
+
     return (
       <div className="flex flex-col gap-4 w-full">
         <h1 className="font-bold text-3xl p-2">Analytics Dashboard</h1>
-        <Select
-          onChange={(e) => setYear(e.target.value)}
-          className="max-w-xs"
-          label="Select Year"
-          selectedKeys={[year.toString()]}
-        >
-          {years.map((animal: any) => (
-            <SelectItem key={animal.key}>{animal.label}</SelectItem>
-          ))}
-        </Select>
+        <div className="flex flex-row items-center gap-4">
+          <Select
+            onChange={(e) => setYear(e.target.value)}
+            className="max-w-xs"
+            label="Select Year"
+            selectedKeys={[year.toString()]}
+          >
+            {years.map((animal: any) => (
+              <SelectItem key={animal.key}>{animal.label}</SelectItem>
+            ))}
+          </Select>
+          <Select
+            onChange={(e) => setSupplier(e.target.value)}
+            className="max-w-xs"
+            label="Select Suppliers"
+            selectedKeys={[supplier.toString()]}
+          >
+            {suppliersData.map((animal: any) => (
+              <SelectItem key={animal._id}>{animal.name}</SelectItem>
+            ))}
+          </Select>
+        </div>
         <div className="parent-div flex flex-row justify-center space-x-4 items-center">
           <div className="left-div  w-1/2 grid grid-cols-2 gap-4 p-2">
             <AnalyticsCard
