@@ -85,7 +85,7 @@ class ProgressUpdateService {
       ) {
         if (!planDate) errors.push("planDate is required");
         if (inStock == null) errors.push("inStock is required");
-        if (received == null) errors.push("received quantity is required");
+        //  if (received == null) errors.push("received quantity is required");
         if (!actualDate) errors.push("actualDate is required");
 
         if (errors.length > 0) {
@@ -100,12 +100,12 @@ class ProgressUpdateService {
       ) {
         if (!planDate) errors.push("planDate is required");
         if (inStock == null) errors.push("inStock is required");
-        if (received == null) errors.push("received is required");
+        //  if (received == null) errors.push("received is required");
         if (!actualDate) errors.push("actualDate is required");
-        if (received != qty)
-          errors.push(
-            "received quantity does not match the total required quantity",
-          );
+        // if (received != qty)
+        //   errors.push(
+        //     "received quantity does not match the total required quantity",
+        //   );
       }
 
       if (errors.length > 0) {

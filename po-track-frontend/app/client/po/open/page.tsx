@@ -108,8 +108,7 @@ export default function OpenPo() {
       setData(getOpenPo?.data.data);
     }
   }, [isFetched]);
-
-  const tableLineItemHeaders = [
+  const [tableLineItemHeaders, setTableHeaders] = useState<any>([
     { key: "lineItem", name: "Line Item" },
     { key: "partNumber", name: "Part Number" },
     { key: "exw_date", name: "EXW Date" },
@@ -119,19 +118,28 @@ export default function OpenPo() {
     { key: "Open_Qty", name: "Open Qty" },
     { key: "supplier", name: "Supplier" },
     { key: "rm_tracker", name: "RM Tracker" },
-    // { key: "rm_actual_date", name: "RM Actual Date" },
-    // { key: "rm_plan_date", name: "RM Plan Date" },
-    // { key: "up_plan_date", name: "UP Plan Date" },
-    // { key: "up_actual_date", name: "UP Actual Date" },
-    // { key: "usp_plan_date", name: "USP Plan Date" },
-    // { key: "usp_actual_date", name: "USP Actual Date" },
     { key: "up_details", name: "UP Details" },
     { key: "usp_details", name: "USP Details" },
     { key: "ssn", name: "Supplier Readliness Date" },
-    { kry: "prgress_tracker", name: "Progress Tracker" },
+    { key: "progress_tracker", name: "Progress Tracker" },
     { key: "delivery_status", name: "Delivery Status" },
-    { key: "action", name: "Action" },
-  ];
+  ]);
+
+  useEffect(() => {
+    if (localStorage.getItem("ROLE") !== "SUPPLIER") {
+      setTableHeaders((prev: any) => {
+        const alreadyExists = prev.some(
+          (header: any) => header.key === "action",
+        );
+
+        if (!alreadyExists) {
+          return [...prev, { key: "action", name: "Action" }];
+        }
+        return prev;
+      });
+    }
+  }, []);
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const deliveryStatusOptions = Object.keys(deliveryStatusStyles).map(

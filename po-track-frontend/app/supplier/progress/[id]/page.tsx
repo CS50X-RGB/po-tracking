@@ -20,7 +20,6 @@ import {
   useDisclosure,
   Checkbox,
 } from "@heroui/react";
-import { u } from "@tanstack/query-core/build/legacy/hydration-Cr-4Kky1";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { error } from "console";
 import { useParams } from "next/navigation";
@@ -192,8 +191,22 @@ export default function PageProgress() {
                         </div>
                         <Chip
                           onClick={() => {
-                            onOpen();
-                            setupdateSupplierDate(lineItem);
+                            if (
+                              item.LI.line_item_status !==
+                                "Pending LI Change Approval" &&
+                              item.delivery_status !== "Dispatched" &&
+                              item.delivery_status !== "Shortclosed"
+                            ) {
+                              onOpen();
+                              setupdateSupplierDate(lineItem);
+                            } else {
+                              toast.error(
+                                "Line Item is transition state or already ended",
+                                {
+                                  position: "top-right",
+                                },
+                              );
+                            }
                           }}
                           color="primary"
                           className="flex cursor-pointer flex-row gap-4"
@@ -207,6 +220,7 @@ export default function PageProgress() {
                             }
                           </h2>
                         </Chip>
+
                         {(item.delivery_status === "Dispatched" ||
                           item.delivery_status === "Shortclosed") && (
                           <div className="flex flex-row gap-4">

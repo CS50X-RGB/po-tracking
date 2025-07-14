@@ -61,12 +61,7 @@ class PurchaseOrderService {
         );
       }
       console.log(supplierId, "supplier");
-      const pos = await this.poRepo.getAllPO(
-        page,
-        offset,
-        supplierId,
-        clientId,
-      );
+      const pos = await this.poRepo.getAllPO(page, offset, supplierId);
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting PO", 400);

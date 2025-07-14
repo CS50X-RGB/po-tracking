@@ -32,18 +32,18 @@ export default function App() {
     password: "",
     role: "",
   });
-  useEffect(() => {
-    const role = localStorage.getItem("ROLE");
-    const token = localStorage.getItem(currentUser);
-    if (token) {
-      if (role === "ADMIN") {
-        console.log(role, "Role");
-        router.replace("/admin");
-      } else if (role === "SUPPLIER") {
-        router.replace("/supplier");
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   const role = localStorage.getItem("ROLE");
+  //   const token = localStorage.getItem(currentUser);
+  //   if (token) {
+  //     if (role === "ADMIN") {
+  //       console.log(role, "Role");
+  //       router.replace("/admin");
+  //     } else if (role === "SUPPLIER") {
+  //       router.replace("/supplier");
+  //     }
+  //   }
+  // }, []);
   const router = useRouter();
   const signupMutate = useMutation({
     mutationKey: ["signinMutate"],

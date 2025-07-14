@@ -233,7 +233,6 @@ class PurchaseOrderRepo {
       console.log(filter, "filter");
       const POs = await PurchaseOrderModel.find(filter)
         .populate("client")
-        .populate("line_items")
         .populate("client_branch")
         .populate("payment_term")
         .populate("freight_term")
