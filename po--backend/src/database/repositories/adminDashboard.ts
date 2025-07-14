@@ -17,55 +17,118 @@ class AdminDashboardRepo {
     try {
       let totalPOCount = 0;
 
-      if (clientId) {
+      if (!clientId && !supplier && !year) {
+        console.log("condition 1: no filters");
+        totalPOCount = await PurchaseOrderModel.countDocuments();
+      } else if (clientId && !supplier && !year) {
+        console.log("condition 2: only clientId");
         totalPOCount = await PurchaseOrderModel.countDocuments({
           client: clientId,
         });
-      } else if (supplier && !year) {
+      } else if (!clientId && supplier && !year) {
+        console.log("condition 3: only supplier");
         const result = await lineItemModel.aggregate([
-          {
-            $match: {
-              supplier: new mongoose.Types.ObjectId(supplier),
-            },
-          },
-          {
-            $group: {
-              _id: "$purchaseOrder",
-            },
-          },
-          {
-            $count: "totalPOCount",
-          },
+          { $match: { supplier: new mongoose.Types.ObjectId(supplier) } },
+          { $group: { _id: "$purchaseOrder" } },
+          { $count: "totalPOCount" },
         ]);
-
         totalPOCount = result[0]?.totalPOCount || 0;
-      } else if (supplier && year) {
+      } else if (!clientId && !supplier && year) {
+        console.log("condition 4: only year");
         const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
         const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
-
+        const result = await lineItemModel.aggregate([
+          { $match: { exw_date: { $gte: startDate, $lte: endDate } } },
+          { $group: { _id: "$purchaseOrder" } },
+          { $count: "totalPOCount" },
+        ]);
+        totalPOCount = result[0]?.totalPOCount || 0;
+      } else if (clientId && supplier && !year) {
+        console.log("condition 5: clientId + supplier");
+        const result = await lineItemModel.aggregate([
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+          {
+            $match: {
+              supplier: new mongoose.Types.ObjectId(supplier),
+              "poDoc.client": clientId,
+            },
+          },
+          { $group: { _id: "$purchaseOrder" } },
+          { $count: "totalPOCount" },
+        ]);
+        totalPOCount = result[0]?.totalPOCount || 0;
+      } else if (clientId && !supplier && year) {
+        console.log("condition 6: clientId + year");
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+        const result = await lineItemModel.aggregate([
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+          {
+            $match: {
+              exw_date: { $gte: startDate, $lte: endDate },
+              "poDoc.client": clientId,
+            },
+          },
+          { $group: { _id: "$purchaseOrder" } },
+          { $count: "totalPOCount" },
+        ]);
+        totalPOCount = result[0]?.totalPOCount || 0;
+      } else if (!clientId && supplier && year) {
+        console.log("condition 7: supplier + year");
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
         const result = await lineItemModel.aggregate([
           {
             $match: {
               supplier: new mongoose.Types.ObjectId(supplier),
-              exw_date: {
-                $gte: startDate,
-                $lte: endDate,
-              },
+              exw_date: { $gte: startDate, $lte: endDate },
             },
           },
-          {
-            $group: {
-              _id: "$purchaseOrder",
-            },
-          },
-          {
-            $count: "totalPOCount",
-          },
+          { $group: { _id: "$purchaseOrder" } },
+          { $count: "totalPOCount" },
         ]);
-
         totalPOCount = result[0]?.totalPOCount || 0;
-      } else {
-        totalPOCount = await PurchaseOrderModel.countDocuments();
+      } else if (clientId && supplier && year) {
+        console.log("condition 8: clientId + supplier + year");
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+        const result = await lineItemModel.aggregate([
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+          {
+            $match: {
+              supplier: new mongoose.Types.ObjectId(supplier),
+              exw_date: { $gte: startDate, $lte: endDate },
+              "poDoc.client": clientId,
+            },
+          },
+          { $group: { _id: "$purchaseOrder" } },
+          { $count: "totalPOCount" },
+        ]);
+        totalPOCount = result[0]?.totalPOCount || 0;
       }
 
       return totalPOCount;
@@ -102,7 +165,90 @@ class AdminDashboardRepo {
     try {
       const pipeline: any[] = [];
 
-      if (clientId) {
+      const hasClient = !!clientId;
+      const hasSupplier = !!supplier;
+      const hasYear = !!year;
+
+      // Case 8: All three present
+      if (hasClient && hasSupplier && hasYear) {
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+        console.log("Condition 8: clientId + supplier + year");
+        pipeline.push(
+          {
+            $match: {
+              supplier: new mongoose.Types.ObjectId(supplier),
+              exw_date: { $gte: startDate, $lte: endDate },
+            },
+          },
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+          {
+            $match: { "poDoc.client": clientId },
+          },
+        );
+      }
+
+      // Case 6: clientId + year
+      else if (hasClient && !hasSupplier && hasYear) {
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+        console.log("Condition 6: clientId + year");
+        pipeline.push(
+          {
+            $match: {
+              exw_date: { $gte: startDate, $lte: endDate },
+            },
+          },
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+          {
+            $match: { "poDoc.client": clientId },
+          },
+        );
+      }
+
+      // Case 5: clientId + supplier
+      else if (hasClient && hasSupplier && !hasYear) {
+        console.log("Condition 5: clientId + supplier");
+        pipeline.push(
+          {
+            $match: {
+              supplier: new mongoose.Types.ObjectId(supplier),
+            },
+          },
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+          {
+            $match: { "poDoc.client": clientId },
+          },
+        );
+      }
+
+      // Case 2: Only clientId
+      else if (hasClient && !hasSupplier && !hasYear) {
+        console.log("Condition 2: only clientId");
         pipeline.push(
           {
             $lookup: {
@@ -117,58 +263,18 @@ class AdminDashboardRepo {
             $match: { "poDoc.client": clientId },
           },
         );
-      } else if (supplier && year) {
+      }
+
+      // Case 7: supplier + year
+      else if (!hasClient && hasSupplier && hasYear) {
         const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
         const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
-
+        console.log("Condition 7: supplier + year");
         pipeline.push(
           {
             $match: {
               supplier: new mongoose.Types.ObjectId(supplier),
-              exw_date: {
-                $gte: startDate,
-                $lte: endDate,
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: "pos",
-              localField: "purchaseOrder",
-              foreignField: "_id",
-              as: "poDoc",
-            },
-          },
-          { $unwind: "$poDoc" },
-        );
-      } else if (supplier) {
-        pipeline.push(
-          {
-            $match: {
-              supplier: new mongoose.Types.ObjectId(supplier),
-            },
-          },
-          {
-            $lookup: {
-              from: "pos",
-              localField: "purchaseOrder",
-              foreignField: "_id",
-              as: "poDoc",
-            },
-          },
-          { $unwind: "$poDoc" },
-        );
-      } else if (year) {
-        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
-        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
-
-        pipeline.push(
-          {
-            $match: {
-              exw_date: {
-                $gte: startDate,
-                $lte: endDate,
-              },
+              exw_date: { $gte: startDate, $lte: endDate },
             },
           },
           {
@@ -183,7 +289,67 @@ class AdminDashboardRepo {
         );
       }
 
-      // Final grouping stage to sum total_cost
+      // Case 3: only supplier
+      else if (!hasClient && hasSupplier && !hasYear) {
+        console.log("Condition 3: only supplier");
+        pipeline.push(
+          {
+            $match: {
+              supplier: new mongoose.Types.ObjectId(supplier),
+            },
+          },
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+        );
+      }
+
+      // Case 4: only year
+      else if (!hasClient && !hasSupplier && hasYear) {
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+        console.log("Condition 4: only year");
+        pipeline.push(
+          {
+            $match: {
+              exw_date: { $gte: startDate, $lte: endDate },
+            },
+          },
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+        );
+      }
+
+      // Case 1: No filters
+      else {
+        console.log("Condition 1: no filters");
+        pipeline.push(
+          {
+            $lookup: {
+              from: "pos",
+              localField: "purchaseOrder",
+              foreignField: "_id",
+              as: "poDoc",
+            },
+          },
+          { $unwind: "$poDoc" },
+        );
+      }
+
+      // Final step: group and sum total_cost
       pipeline.push({
         $group: {
           _id: null,
@@ -321,7 +487,6 @@ class AdminDashboardRepo {
       const totalLineItemAgg = await lineItemModel.aggregate(pipeline);
 
       const totalLineItem = totalLineItemAgg[0]?.totalLineItem ?? 0;
-      console.log("total line item", totalLineItem);
 
       // For open line items, repeat pipeline on progressUpdateModel
       const pipeline2: any[] = [];
@@ -330,14 +495,27 @@ class AdminDashboardRepo {
         pipeline2.push(
           {
             $lookup: {
+              from: "line_items",
+              localField: "LI",
+              foreignField: "_id",
+              as: "liDoc",
+            },
+          },
+          { $unwind: "$liDoc" },
+          {
+            $lookup: {
               from: "pos",
-              localField: "purchaseOrder",
+              localField: "liDoc.purchaseOrder",
               foreignField: "_id",
               as: "poDoc",
             },
           },
           { $unwind: "$poDoc" },
-          { $match: { "poDoc.client": clientId } },
+          {
+            $match: {
+              "poDoc.client": new mongoose.Types.ObjectId(clientId),
+            },
+          },
         );
       }
 
@@ -512,7 +690,8 @@ class AdminDashboardRepo {
             },
           },
         );
-      } else if (year) {
+      }
+      if (year) {
         pipeline.push(
           {
             $lookup: {
@@ -611,7 +790,6 @@ class AdminDashboardRepo {
 
           if (client) {
             dispatchedCount = dispatchedCount.filter((d: any) => {
-              console.log(d);
               return (
                 d.LI?.purchaseOrder?.client?.toString() === client.toString()
               );
@@ -627,7 +805,12 @@ class AdminDashboardRepo {
 
           monthsOtd[month] = otdPercentage;
         }
-        const avgOtd = await this.getAvgOtd(year, null);
+        let avgOtd = 0;
+        if (supplier) {
+          avgOtd = await this.getAvgOtd(year, supplier);
+        } else {
+          avgOtd = await this.getAvgOtd(year, null);
+        }
         output[year] = {
           monthsOtd,
           avgOtd: avgOtd,
@@ -680,7 +863,6 @@ class AdminDashboardRepo {
 
         if (client) {
           dispatchedCount = dispatchedCount.filter((d: any) => {
-            console.log(d);
             return (
               d.LI?.purchaseOrder?.client?.toString() === client.toString()
             );
@@ -689,8 +871,6 @@ class AdminDashboardRepo {
 
         if (supplier) {
           const supplierObjectId = new mongoose.Types.ObjectId(supplier);
-          console.log("Filtering by supplier:", supplierObjectId);
-
           dispatchedCount = dispatchedCount.filter((d: any) =>
             d.supplier?.equals(supplierObjectId),
           );

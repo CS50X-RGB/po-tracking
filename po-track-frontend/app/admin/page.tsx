@@ -196,7 +196,13 @@ export default function Page() {
             )}
             <AnalyticsGraphCard
               title="OTD Graph"
-              chart={<OTDGaugeChart year={year} percentage={result.otd} />}
+              chart={
+                <OTDGaugeChart
+                  supplier={supplier}
+                  year={year}
+                  percentage={result.otd}
+                />
+              }
             />
           </div>
         </div>

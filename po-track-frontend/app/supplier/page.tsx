@@ -72,7 +72,7 @@ export default function Supplier() {
     );
   } else {
     return (
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex p-4 flex-col gap-4 w-full">
         <Select
           onChange={(e) => setYear(e.target.value)}
           className="max-w-xs"
@@ -99,6 +99,7 @@ export default function Supplier() {
           <div className="left-div  w-1/2 grid grid-cols-2 gap-4 p-2">
             <AnalyticsCard
               title1="Total POs"
+              // href1="/admin/po/view"
               value1={result.totalPOData.totalPOCount}
               title2="value"
               value2={new Intl.NumberFormat("en-IN", {
@@ -147,7 +148,13 @@ export default function Supplier() {
             )}
             <AnalyticsGraphCard
               title="OTD Graph"
-              chart={<OTDGaugeChart year={year} percentage={result.avgOtd} />}
+              chart={
+                <OTDGaugeChart
+                  supplier={"NULL"}
+                  year={year}
+                  percentage={result.avgOtd}
+                />
+              }
             />
           </div>
         </div>

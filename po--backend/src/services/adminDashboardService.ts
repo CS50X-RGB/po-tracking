@@ -12,7 +12,7 @@ class AdminDashboardService {
       let { supplier, year }: any = req.query;
       const isSupplier = supplier !== "NULL";
       const isYear = year !== "NULL";
-      console.log(supplier, year, req.query, "SUPPLIER");
+
       let totalCount,
         totalPOvalue,
         openPOData,
@@ -140,8 +140,10 @@ class AdminDashboardService {
           400,
         );
       }
-      const { year }: any = req.params;
-      const { supplier, ...other }: any = req.user;
+
+      const { year, supplier: supplierParam }: any = req.params;
+      const { supplier: userSupplier, ...other }: any = req.user;
+
       const years =
         year === "NULL"
           ? [
@@ -149,18 +151,25 @@ class AdminDashboardService {
               new Date().getFullYear() - 1,
               new Date().getFullYear() - 2,
             ]
-          : [year];
+          : [parseInt(year)];
+
       let response = {};
-      if (supplier === "NULL") {
-        response = await this.adminDashboard.getFullOtd(years);
+
+      if (supplierParam === "NULL") {
+        if (userSupplier) {
+          response = await this.adminDashboard.getFullOtd(years, userSupplier);
+        } else {
+          response = await this.adminDashboard.getFullOtd(years);
+        }
       } else {
-        response = await this.adminDashboard.getFullOtd(years, supplier);
+        response = await this.adminDashboard.getFullOtd(years, supplierParam);
       }
+
       return res.sendArrayFormatted(response, "OTD Graph", 200);
     } catch (error) {
       return res.sendError(
         `Error while getting graph`,
-        "Error whilte getting graph",
+        "Error while getting graph",
         400,
       );
     }

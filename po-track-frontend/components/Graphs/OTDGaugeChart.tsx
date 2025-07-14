@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 interface OTDGaugeChartProps {
   percentage: number;
   year: any;
+  supplier: any;
 }
 
 export default function OTDGaugeChart({
   percentage,
   year,
+  supplier,
 }: OTDGaugeChartProps) {
+  console.log(supplier, "supplier");
   const value = Math.min(percentage, 100);
   const data = [{ value }, { value: 100 - value }];
   const COLORS = ["#3b82f6", "#e5e7eb"]; // blue, gray
@@ -23,7 +26,11 @@ export default function OTDGaugeChart({
     <div className="relative w-full flex  flex-col justify-center items-center">
       {/* Gauge */}
       <ResponsiveContainer width="100%" aspect={2}>
-        <PieChart onClick={() => router.push(`/admin/otd?year=${year}`)}>
+        <PieChart
+          onClick={() =>
+            router.push(`/admin/otd?year=${year}&supplier=${supplier}`)
+          }
+        >
           <Pie
             data={data}
             startAngle={180}

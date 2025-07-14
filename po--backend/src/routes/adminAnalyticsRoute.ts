@@ -13,7 +13,7 @@ router.get(
 );
 
 router.get(
-  "/otd/:year",
+  "/otd/:year/:supplier",
   userMiddleware.verify.bind(userMiddleware),
   adminDashboardService.getFullOtd.bind(adminDashboardService),
 );

@@ -10,6 +10,7 @@ import {
 } from "../../interfaces/lineItemInterface";
 import PartNumberRepository from "./partNumberRepository";
 import UOMRepo from "./unitOfMeasurementrRepository";
+import LineItemModel from "../models/lineItemModel";
 
 class PurchaseOrderRepo {
   private clientRepo: ClientRepo;
@@ -124,9 +125,15 @@ class PurchaseOrderRepo {
     }
   }
 
-  //Funtion to delte the PO by ID
+  // Funtion to delte the PO by ID
   public async deletePurchaseOrderById(id: ObjectId) {
     try {
+      // const session = await mongoose.startSession();
+      // session.startTransaction();
+      // const purchaseOrder =
+      //   await PurchaseOrderModel.findById(id).session(session);
+
+      // const lineItems = await LineItemModel;
       const result = await PurchaseOrderModel.findByIdAndDelete(id);
       return result;
     } catch (error) {
@@ -152,23 +159,87 @@ class PurchaseOrderRepo {
     page: number,
     offset: number,
     supplierId?: mongoose.Types.ObjectId,
+    clientId?: any,
   ) {
     try {
       const filter: any = {};
 
       if (supplierId) {
-        filter.supplier = supplierId;
+        const POs = await PurchaseOrderModel.aggregate([
+          {
+            $lookup: {
+              from: "line_items",
+              localField: "line_items",
+              foreignField: "_id",
+              as: "line_items",
+            },
+          },
+          {
+            $match: {
+              "line_items.supplier": new mongoose.Types.ObjectId(supplierId),
+            },
+          },
+          {
+            $lookup: {
+              from: "clients",
+              localField: "client",
+              foreignField: "_id",
+              as: "client",
+            },
+          },
+          { $unwind: "$client" },
+          {
+            $lookup: {
+              from: "client_branches",
+              localField: "client_branch",
+              foreignField: "_id",
+              as: "client_branch",
+            },
+          },
+          { $unwind: "$client_branch" },
+          {
+            $lookup: {
+              from: "payment_terms",
+              localField: "payment_term",
+              foreignField: "_id",
+              as: "payment_term",
+            },
+          },
+          { $unwind: "$payment_term" },
+          {
+            $lookup: {
+              from: "freight_terms",
+              localField: "freight_term",
+              foreignField: "_id",
+              as: "freight_term",
+            },
+          },
+          { $unwind: "$freight_term" },
+          {
+            $skip: (page - 1) * offset,
+          },
+          {
+            $limit: offset,
+          },
+        ]);
+        return {
+          data: POs,
+          total: POs,
+        };
       }
+      if (clientId) {
+        filter.client = clientId;
+      }
+      console.log(filter, "filter");
       const POs = await PurchaseOrderModel.find(filter)
         .populate("client")
+        .populate("line_items")
         .populate("client_branch")
         .populate("payment_term")
         .populate("freight_term")
         .skip((page - 1) * offset)
         .limit(offset)
         .lean();
-
-      console.log("PO is", POs);
 
       const total = await PurchaseOrderModel.countDocuments(filter);
       return {

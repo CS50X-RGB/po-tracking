@@ -46,7 +46,10 @@ class PurchaseOrderService {
       const supplierId = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
-      console.log(supplierId);
+      const clientId = req.user?.client
+        ? new mongoose.Types.ObjectId(req.user.client)
+        : undefined;
+
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
 
@@ -57,8 +60,13 @@ class PurchaseOrderService {
           400,
         );
       }
-
-      const pos = await this.poRepo.getAllPO(page, offset, supplierId);
+      console.log(supplierId, "supplier");
+      const pos = await this.poRepo.getAllPO(
+        page,
+        offset,
+        supplierId,
+        clientId,
+      );
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting PO", 400);
