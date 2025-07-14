@@ -90,7 +90,7 @@ router.put(
   progressUpdateservice.updatePu.bind(progressUpdateservice),
 );
 router.put(
-  "/client/update/logistics/:logid",
+  "/client/update/logistic/:logid",
   progressUpdateservice.updateLogistics.bind(progressUpdateservice),
 );
 router.get(
@@ -103,6 +103,30 @@ router.get(
   "/client/open/po",
   progressUpdateservice.getOpenPo.bind(progressUpdateservice),
 );
+
+router.post(
+  "/client/feedback/:puId",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.createFeedBack.bind(progressUpdateservice),
+);
+
+router.get(
+  "/supplier/feedback/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.getFeedBacks.bind(progressUpdateservice),
+);
+
+router.get(
+  "/client/feedback/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.getFeedBacksForClient.bind(progressUpdateservice),
+);
+router.put(
+  "/supplier/approve/feedback/:feedbackId",
+  userMiddleware.verify.bind(userMiddleware),
+  progressUpdateservice.approveFeedBack.bind(progressUpdateservice),
+);
+
 // router.patch(
 //   "/rawMaterial/update/:rawMaterialId",
 //   progressUpdateservice.updateRawMaterial.bind(progressUpdateservice),

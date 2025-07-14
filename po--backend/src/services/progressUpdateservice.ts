@@ -85,7 +85,7 @@ class ProgressUpdateService {
       ) {
         if (!planDate) errors.push("planDate is required");
         if (inStock == null) errors.push("inStock is required");
-        if (received == null) errors.push("received quantity is required");
+        //  if (received == null) errors.push("received quantity is required");
         if (!actualDate) errors.push("actualDate is required");
 
         if (errors.length > 0) {
@@ -100,12 +100,12 @@ class ProgressUpdateService {
       ) {
         if (!planDate) errors.push("planDate is required");
         if (inStock == null) errors.push("inStock is required");
-        if (received == null) errors.push("received is required");
+        //  if (received == null) errors.push("received is required");
         if (!actualDate) errors.push("actualDate is required");
-        if (received != qty)
-          errors.push(
-            "received quantity does not match the total required quantity",
-          );
+        // if (received != qty)
+        //   errors.push(
+        //     "received quantity does not match the total required quantity",
+        //   );
       }
 
       if (errors.length > 0) {
@@ -599,7 +599,6 @@ class ProgressUpdateService {
     try {
       const { logid } = req.params;
       const { data } = req.body;
-      console.log(req.body, "Body");
       const updatedLogistics = await this.logisticsRepo.updateLogistics(
         logid,
         data,
@@ -647,89 +646,125 @@ class ProgressUpdateService {
       );
     }
   }
-  // public async updateRawMaterial(req: Request, res: Response) {
-  //   try {
-  //     const { rawMaterialId } = req.params;
-  //     const { source, RMstatus, planDate, inStock, received, actualDate } =
-  //       req.body;
+  public async createFeedBack(req: Request, res: Response) {
+    try {
+      console.log("Here");
+      if (!req.user) {
+        console.log("No User");
+        return res.sendError("Need login", "No token", 400);
+      }
+      const { _id, client, ...other } = req.user;
+      const { puId } = req.params;
+      const { data } = req.body;
+      console.log(req.body, "Req body");
+      const createFeedBackObject =
+        await this.progressUpdateRepo.createFeedBackByClient(
+          puId,
+          data,
+          _id,
+          client,
+        );
+      return res.sendFormatted(
+        createFeedBackObject,
+        "Feed Back Object Created",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(
+        `Error while creating feedback document`,
+        "Error while crrating feedback document",
+        400,
+      );
+    }
+  }
 
-  //     const errors: string[] = [];
+  public async getFeedBacks(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError(
+          `Error as user not logged in`,
+          "User not logged In",
+          400,
+        );
+      }
+      const page = parseInt(req.params.page, 10);
+      const offset = parseInt(req.params.offset, 10);
 
-  //     if (
-  //       source === rawMaterialSources.IMPORTED &&
-  //       RMstatus === rawMaterialStatus.OPEN
-  //     ) {
-  //       if (inStock == null) errors.push("instock quantity is required");
-  //       if (!planDate) errors.push("plan date is required");
-  //     }
+      const { supplier, ...other } = req.user;
+      const feedbackObject =
+        await this.progressUpdateRepo.getFeedBacksForSupplier(
+          supplier,
+          page,
+          offset,
+        );
+      return res.sendArrayFormatted(
+        feedbackObject,
+        "Got FeedBack Entites",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(
+        `Error while getting feedback object`,
+        "Error while getting feedback object",
+        400,
+      );
+    }
+  }
+  public async getFeedBacksForClient(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError(
+          `Error as user not logged in`,
+          "User not logged In",
+          400,
+        );
+      }
+      const page = parseInt(req.params.page, 10);
+      const offset = parseInt(req.params.offset, 10);
 
-  //     if (
-  //       source === rawMaterialSources.IMPORTED &&
-  //       RMstatus === rawMaterialStatus.INTRANSIST
-  //     ) {
-  //       if (!planDate) errors.push("planDate is required");
-  //       if (inStock == null) errors.push("inStock is required");
-  //     }
+      const { client, ...other } = req.user;
+      const feedbackObject =
+        await this.progressUpdateRepo.getFeedBacksForClient(
+          client,
+          page,
+          offset,
+        );
+      return res.sendArrayFormatted(
+        feedbackObject,
+        "Got FeedBack Entites",
+        200,
+      );
+    } catch (error) {
+      return res.sendError(
+        `Error while getting feedback object`,
+        "Error while getting feedback object",
+        400,
+      );
+    }
+  }
 
-  //     if (
-  //       source === rawMaterialSources.IMPORTED &&
-  //       RMstatus === rawMaterialStatus.PARTIALRECEIVED
-  //     ) {
-  //       if (!planDate) errors.push("planDate is required");
-  //       if (inStock == null) errors.push("inStock is required");
-  //       if (received == null) errors.push("received quantity is required");
-  //       if (!actualDate) errors.push("actualDate is required");
-  //     }
-
-  //     if (
-  //       source === rawMaterialSources.IMPORTED &&
-  //       RMstatus === rawMaterialStatus.RECEIVED
-  //     ) {
-  //       if (!planDate) errors.push("planDate is required");
-  //       if (inStock == null) errors.push("inStock is required");
-  //       if (received == null) errors.push("received quantity is required");
-  //       if (!actualDate) errors.push("actualDate is required");
-  //     }
-
-  //     if (errors.length > 0) {
-  //       return res.sendError(errors, "Validation failed", 400);
-  //     }
-
-  //     // Call your repo to update
-  //     const updated = await this.progressUpdateRepo.updateRawMaterial(
-  //       rawMaterialId,
-  //       {
-  //         source,
-  //         RMstatus,
-  //         planDate,
-  //         inStock,
-  //         received,
-  //         actualDate,
-  //       },
-  //     );
-
-  //     if (!updated) {
-  //       return res.sendError(
-  //         "Not Found",
-  //         "Raw Material not found or update failed",
-  //         404,
-  //       );
-  //     }
-
-  //     return res.sendFormatted(
-  //       updated,
-  //       "Raw Material updated successfully",
-  //       200,
-  //     );
-  //   } catch (error) {
-  //     console.log(error);
-  //     return res.sendError(
-  //       "Server Error",
-  //       "Failed to update Raw Material",
-  //       500,
-  //     );
-  //   }
-  // }
+  public async approveFeedBack(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError("User Not found", "User not logged in", 400);
+      }
+      const { feedbackId }: any = req.params;
+      const { data }: any = req.body;
+      const { _id, ...other } = req.user;
+      const newFeedBack = await this.progressUpdateRepo.approveFeedBack(
+        feedbackId,
+        data,
+        _id,
+      );
+      return res.sendFormatted(newFeedBack, "Feedback Updated", 200);
+    } catch (error) {
+      return res.sendError(
+        "Error while updating error",
+        "Error while updating",
+        400,
+      );
+    }
+  }
 }
 
 export default ProgressUpdateService;

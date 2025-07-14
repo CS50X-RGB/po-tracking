@@ -47,7 +47,6 @@ export default function CustomTable({
   loadingState,
   data,
 }: CustomTableProps) {
-
   const deleteById = useMutation({
     mutationKey: ["deletebyId"],
     mutationFn: async (id: any) => {
@@ -55,8 +54,8 @@ export default function CustomTable({
     },
     onSuccess: (data: any) => {
       console.log(data.data);
-      toast.success("User Deleted Succes",{
-          position: "top-right"
+      toast.success("User Deleted Succes", {
+        position: "top-right",
       });
       queryClient.invalidateQueries();
     },
@@ -107,42 +106,40 @@ export default function CustomTable({
     onClose: onCloseUser,
   } = useDisclosure();
 
-  const [updateuserObj, setUpdateUser] = useState<any>(
-    {
-      name: '',
-      email: '',
-      password: '',
-      role: ''
-    }
-  );
+  const [updateuserObj, setUpdateUser] = useState<any>({
+    name: "",
+    email: "",
+    password: "",
+    role: "",
+  });
   const updateUser = useMutation({
     mutationKey: ["updateUser"],
-    mutationFn: async (item : any) => {
+    mutationFn: async (item: any) => {
       return await putData(`${accountRoutes.updateUser}${item?._id}`, {}, item);
     },
-    onMutate : () => {
+    onMutate: () => {
       setloadingUser(true);
     },
-    onSettled : () => {
+    onSettled: () => {
       setloadingUser(false);
     },
-    onSuccess : (data : any) => {
+    onSuccess: (data: any) => {
       setloadingUser(false);
-      console.log(data,"data");
-      toast.success("User Details update",{
-        position : "top-right"
+      console.log(data, "data");
+      toast.success("User Details update", {
+        position: "top-right",
       });
       onCloseUser();
     },
-    onError:(err : any) => {
-      console.error(err,"Error");
-    }
+    onError: (err: any) => {
+      console.error(err, "Error");
+    },
   });
   const clickPencil = (item: any) => {
     const { password, ...sanitizedItem } = item;
     setUpdateUser(sanitizedItem);
     onOpenUser();
-  }
+  };
   const [item, setItem] = useState<any>({});
   const clickChip = (item: any) => {
     onOpenStatus();
@@ -164,7 +161,10 @@ export default function CustomTable({
               className={"size-4 fill-red-300 cursor-pointer"}
               onClick={() => deleteById.mutate(item._id)}
             />
-            <PencilIcon className={"size-4 cursor-pointer"} onClick={() => clickPencil(item)} />
+            <PencilIcon
+              className={"size-4 cursor-pointer"}
+              onClick={() => clickPencil(item)}
+            />
             {item.isBlocked === false ? (
               <Chip
                 className="text-sm cursor-pointer"
@@ -172,7 +172,8 @@ export default function CustomTable({
                 size="sm"
                 startContent={<CheckIcon size={15} height={6} width={6} />}
                 variant="faded"
-                onClick={() => clickChip(item)}>
+                onClick={() => clickChip(item)}
+              >
                 Active
               </Chip>
             ) : (
@@ -187,7 +188,6 @@ export default function CustomTable({
                 Blocked
               </Chip>
             )}
-
           </div>
         );
       default:
@@ -200,10 +200,11 @@ export default function CustomTable({
       [type]: value,
     }));
   };
-  const handleFormSubmit = (e : any) => {
+  const handleFormSubmit = (e: any) => {
     setloadingUser(true);
     updateUser.mutate(updateuserObj);
-  }
+  };
+
   return (
     <>
       <Table
@@ -231,6 +232,7 @@ export default function CustomTable({
         <TableBody
           items={data ?? []}
           loadingContent={<Spinner />}
+          emptyContent={<p>No Line Items Not Here</p>}
           loadingState={loadingState}
         >
           {(item) => (
@@ -275,7 +277,10 @@ export default function CustomTable({
           </div>
         }
       >
-        <form onSubmit={(e) => handleFormSubmit(e)} className="flex flex-col gap-4 p-4">
+        <form
+          onSubmit={(e) => handleFormSubmit(e)}
+          className="flex flex-col gap-4 p-4"
+        >
           <Input
             label="Name"
             type="text"
@@ -320,9 +325,11 @@ export default function CustomTable({
               )}
             </Autocomplete>
           )} */}
-          <Button isLoading={loadingUser} type="submit" color="primary">Submit</Button>
+          <Button isLoading={loadingUser} type="submit" color="primary">
+            Submit
+          </Button>
         </form>
-      </CustomModal >
+      </CustomModal>
     </>
   );
 }

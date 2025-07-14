@@ -6,11 +6,28 @@ import lineItemModel from "../models/lineItemModel";
 class SupplierDashboardRepo {
   constructor() {}
 
-  public async getTotalPOData(supplierId: mongoose.Types.ObjectId) {
+  public async getTotalPOData(
+    supplierId: mongoose.Types.ObjectId,
+    year?: number,
+  ) {
     try {
+      let matchStage: any = {
+        supplier: supplierId,
+      };
+
+      if (year) {
+        const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+        const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+        matchStage.exw_date = {
+          $gte: startDate,
+          $lte: endDate,
+        };
+      }
+
       const poDataAgg = await lineItemModel.aggregate([
         {
-          $match: { supplier: supplierId },
+          $match: matchStage,
         },
         {
           $group: {
@@ -31,6 +48,7 @@ class SupplierDashboardRepo {
       const totalPOValue = poDataAgg[0]?.totalPOValue ?? 0;
       console.log("Total PO count is ", totalPOCount);
       console.log("Total PO value is ", totalPOValue);
+
       return { totalPOCount, totalPOValue };
     } catch (error) {
       console.error("Error fetching supplier PO data", error);

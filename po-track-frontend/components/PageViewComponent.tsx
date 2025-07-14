@@ -41,8 +41,8 @@ export default function PageViewComponent({
   }, [isFetchingGetPos]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1>{heading}</h1>
+    <div className="flex flex-col gap-4 p-6">
+      <h1 className="font-bold text-2xl">{heading}</h1>
       <ShowTableData
         page={page}
         columnHeaders={columnHeaders}

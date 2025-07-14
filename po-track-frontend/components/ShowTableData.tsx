@@ -12,6 +12,7 @@ import {
   Switch,
   useDisclosure,
   Button,
+  Tooltip,
   Input,
 } from "@heroui/react";
 
@@ -22,6 +23,7 @@ import {
   accountRoutes,
   partNumbersRoutes,
   poRoutes,
+  progressUpdate,
 } from "@/core/api/apiRoutes";
 import { queryClient } from "@/app/providers";
 
@@ -32,6 +34,7 @@ import CrossIcon from "@/public/Icons/CrossIcon";
 import { useRouter } from "next/navigation";
 import CustomModal from "./Modal/CustomModal";
 import EyeIcon from "@/public/Icons/EyeIcon";
+import { Check, MoveRight, X } from "lucide-react";
 
 interface CustomTableProps {
   columnHeaders: {
@@ -99,6 +102,27 @@ export default function ShowTableData({
     onError: (error: any) => {
       console.error(error);
       toast.error("Error caused while deleting Part Number");
+    },
+  });
+  const updateFeedBackById = useMutation({
+    mutationKey: ["updateFeedBackById"],
+    mutationFn: ({ id, response }: { id: any; response: string }) => {
+      return putData(
+        `${progressUpdate.approveFeedBackLineItem}${id}`,
+        {},
+        { data: { response } },
+      );
+    },
+    onSuccess: (data: any) => {
+      console.log(data.data);
+      toast.success("Feedback Updated Successfully", {
+        position: "top-right",
+      });
+      queryClient.invalidateQueries();
+    },
+    onError: (error: any) => {
+      console.error(error);
+      toast.error("Error caused while updating Feedback");
     },
   });
   const updateBlockById = useMutation({
@@ -170,6 +194,101 @@ export default function ShowTableData({
             onClick={() => deleteByPartNumberId.mutate(item._id)}
           />
         );
+      case "Date Required Changes":
+        if (item?.new_date_required_date) {
+          return (
+            <span className="flex flex-row gap-4 items-center">
+              <Chip color="danger">
+                {new Date(item.prev_date_required_date).toLocaleDateString(
+                  "en-GB",
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  },
+                )}
+              </Chip>
+              <MoveRight />
+              <Chip color="success">
+                {new Date(item.new_date_required_date).toLocaleDateString(
+                  "en-GB",
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  },
+                )}
+              </Chip>
+            </span>
+          );
+        } else {
+          return <Chip>No Changes in Date</Chip>;
+        }
+      case "EXW Date Changes":
+        if (item?.new_exw_date) {
+          return (
+            <span className="flex flex-row gap-4 items-center">
+              <Chip color="danger">
+                {new Date(item.prev_exw_date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </Chip>
+              <MoveRight />
+              <Chip color="success">
+                {new Date(item.new_exw_date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </Chip>
+            </span>
+          );
+        } else {
+          return <Chip>No Changes in Date</Chip>;
+        }
+      case "Line Item Status Changes":
+        if (item?.new_line_item_status) {
+          return (
+            <span className="flex flex-row gap-4 items-center">
+              <Chip color="danger">{item.prev_line_item_status}</Chip>
+              <MoveRight />
+              <Chip color="success">{item.new_line_item_status}</Chip>
+            </span>
+          );
+        } else {
+          return <Chip>No Changes in Date</Chip>;
+        }
+      case "Supplier Readliness Date Changes":
+        if (item?.new_supplier_readliness_date) {
+          return (
+            <span className="flex flex-row gap-4 items-center">
+              <Chip color="danger">
+                {new Date(
+                  item.prev_supplier_readliness_date,
+                ).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </Chip>
+              <MoveRight />
+              <Chip color="success">
+                {new Date(item.new_supplier_readliness_date).toLocaleDateString(
+                  "en-GB",
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  },
+                )}
+              </Chip>
+            </span>
+          );
+        } else {
+          return <Chip>No Changes in Date</Chip>;
+        }
       case "Freight Terms":
         return <p>{item.freight_term.name}</p>;
       case "Payment Terms":
@@ -177,6 +296,12 @@ export default function ShowTableData({
       case "Sub Client Name":
       case "Supplier Name":
         return <p>{item.name}</p>;
+      case "Line Item":
+        return <p>{item.line_item.LI.name}</p>;
+      case "Previous Line Item Status":
+        return <Chip>{item.prev_line_item_status}</Chip>;
+      case "New Line Item Status":
+        return <Chip>{item.new_line_item_status}</Chip>;
       case "Exw Date":
         return <p>{item.exw_date} days</p>;
       case "Client Action":
@@ -207,6 +332,41 @@ export default function ShowTableData({
             })}
           </p>
         );
+      case "FeedBack Action":
+        return (
+          <div className="flex flex-row items-center gap-4">
+            <Button
+              onPress={() =>
+                updateFeedBackById.mutate({
+                  response: "Yes",
+                  id: item._id,
+                })
+              }
+              color="success"
+              isIconOnly
+            >
+              <Check />
+            </Button>
+            <Button
+              onPress={() =>
+                updateFeedBackById.mutate({
+                  response: "No",
+                  id: item._id,
+                })
+              }
+              color="danger"
+              isIconOnly
+            >
+              <X />
+            </Button>
+          </div>
+        );
+      case "Part Details":
+        return (
+          <Tooltip content={item.line_item.LI.partNumber.description}>
+            <p>{item.line_item.LI.partNumber.name}</p>
+          </Tooltip>
+        );
       case "Unit Cost":
         return <p>{Number(item.unit_cost).toFixed(2)}</p>;
       case "Line Item Status":
@@ -214,7 +374,13 @@ export default function ShowTableData({
       case "Line Item Type":
         return <p>{item.line_item_type}</p>;
       case "Purchase Order":
-        return <p>{item.purchaseOrder.name}</p>;
+        if (item?.purchaseOrder?.name) {
+          return <p>{item?.purchaseOrder?.name}</p>;
+        } else if (item?.line_item.LI?.purhcaseOrder) {
+          return <p>{item?.line_item?.LI?.purchaseOrder?.name}</p>;
+        } else {
+          return <p>Line Item</p>;
+        }
       case "Supplier":
         return <p>{item.supplier.name}</p>;
       case "action":
@@ -327,6 +493,7 @@ export default function ShowTableData({
             <TableColumn key={column.name}>
               {column.name === "Bom_Action" ||
               column.name === "Client Action" ||
+              column.name === "FeedBack Action" ||
               column.name === "Purchase Action"
                 ? "Actions"
                 : column.name}
@@ -335,6 +502,7 @@ export default function ShowTableData({
         </TableHeader>
 
         <TableBody
+          emptyContent={"No items present here"}
           items={data ?? []}
           loadingContent={<Spinner />}
           loadingState={loadingState}

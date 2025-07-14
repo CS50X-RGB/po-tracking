@@ -43,6 +43,7 @@ export const poRoutes = {
   viewLISupplier: "/po/li/supplier/all/",
   viewDispatchedLISupplier: "/po/li/supplier/dispatched/",
   viewopenLISupplier: "/po/li/supplier/open/",
+  chnageSupplierReadlinessDate: "/po/li/supplier/change/date/",
 };
 export const masterRoutes = {
   createClient: "/master/create/client",
@@ -92,14 +93,21 @@ export const progressUpdate = {
   //Logistics
   getLogisitcs: "/progressUpdate/client/logistics/",
   //updateLogitics,
-  updateLogistics: "/progressUpdate/client/update/logistics/",
+  updateLogistics: "/progressUpdate/client/update/logistic/",
 
   //Update Open po
   getClientOpenPo: "/progressUpdate/client/open/po",
+
+  //updateLineItemStatusClient
+  clientLineItem: "/progressUpdate/client/feedback/",
+  supplierFeedBackLineItem: "/progressUpdate/supplier/feedback/",
+  clientFeedBackLineItem: "/progressUpdate/client/feedback/",
+  approveFeedBackLineItem: "/progressUpdate/supplier/approve/feedback/",
 };
 
 export const analyticsRoute = {
   getAdminAnalytics: "/adminAnalytics/totalPOCount",
   getSupplierAnalytics: "/supplierAnalytics/analyticsData",
   getClientAnalytics: "/clientAnalytics/analyticsData",
+  getOTD: "/adminAnalytics/otd/",
 };

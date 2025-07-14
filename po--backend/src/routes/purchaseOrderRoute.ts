@@ -10,7 +10,11 @@ const importService = new ImporterService();
 const userMiddleware = new UserMiddleware();
 router.post("/new/create", poService.createPo.bind(poService));
 
-router.get("/all/:page/:offset", poService.getPO.bind(poService));
+router.get(
+  "/all/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  poService.getPO.bind(poService),
+);
 
 router.get("/single/:id", poService.getPOById.bind(poService));
 
@@ -82,6 +86,12 @@ router.get(
   "/li/supplier/dispatched/:page/:offset",
   userMiddleware.verify.bind(userMiddleware),
   poService.getDispatchedLI.bind(poService),
+);
+
+router.put(
+  "/li/supplier/change/date/:liId",
+  userMiddleware.verify.bind(userMiddleware),
+  poService.changeLineItemDate.bind(poService),
 );
 
 export default router;

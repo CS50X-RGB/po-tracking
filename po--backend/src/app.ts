@@ -88,6 +88,22 @@ const permissions: PermissionCreate[] = [
     link: "/supplier/progress",
   },
   {
+    name: "Client Approval",
+    link: "/client/approve",
+  },
+  {
+    name: "Supplier Approval",
+    link: "/supplier/approve",
+  },
+  {
+    name: "Supplier Dashboard",
+    link: "/supplier",
+  },
+  {
+    name: "Client Dashboard",
+    link: "/client",
+  },
+  {
     name: "Approve Quality",
     link: "/client/quality",
   },

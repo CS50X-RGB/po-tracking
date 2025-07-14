@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-type LineItemStatus =
+export type LineItemStatus =
   | "Active"
   | "Preponed"
   | "On Hold"
@@ -11,6 +11,7 @@ type LineItemStatus =
   | "Delivered"
   | "Partially Dispatched"
   | "In Transit Full Qty"
+  | "In Transit ShortClosed"
   | "Partially Delivered"
   | "Pending LI Change Approval";
 
@@ -121,6 +122,7 @@ const lineItemSchema = new Schema<ILineItemModel>({
       "Delivered",
       "Partially Dispatched",
       "In Transit Full Qty",
+      "In Transit ShortClosed",
       "Partially Delivered",
       "Pending LI Change Approval",
     ],

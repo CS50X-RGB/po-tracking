@@ -46,7 +46,10 @@ class PurchaseOrderService {
       const supplierId = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
-      console.log(supplierId);
+      const clientId = req.user?.client
+        ? new mongoose.Types.ObjectId(req.user.client)
+        : undefined;
+
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
 
@@ -57,7 +60,7 @@ class PurchaseOrderService {
           400,
         );
       }
-
+      console.log(supplierId, "supplier");
       const pos = await this.poRepo.getAllPO(page, offset, supplierId);
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
@@ -276,6 +279,29 @@ class PurchaseOrderService {
       );
     } catch (error) {
       return res.sendError(error, "Error while getting Dispatched LI", 400);
+    }
+  }
+
+  public async changeLineItemDate(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.sendError(`User Not logged in`, "User not logged in", 400);
+      }
+      const { _id, ...other } = req.user;
+      const { liId } = req.params;
+      const { new_supplier_readliness_date } = req.body;
+      const lineItem = await this.liRepo.changeSupplierReadlinessDate(
+        new_supplier_readliness_date,
+        liId,
+        _id,
+      );
+      return res.sendFormatted(lineItem, "Line item Updated", 200);
+    } catch (error) {
+      return res.sendError(
+        `Error while changing line item supplier readliness date`,
+        "Erorr while chaging supplier readliness date",
+        400,
+      );
     }
   }
 }

@@ -47,6 +47,12 @@ export enum DeliveryStatus {
   Cancelled = "Cancelled",
 }
 
+export enum ProgressTrackerEnum {
+  NOT_STARTED = "not_started",
+  ON_TRACK = "on_track",
+  DELAYED = "delayed",
+}
+
 export interface IProgressUpdate extends Document {
   rawMaterial: mongoose.Schema.Types.ObjectId;
   underProcess: mongoose.Schema.Types.ObjectId;
@@ -60,8 +66,10 @@ export interface IProgressUpdate extends Document {
   openqty: Number;
   tentative_planned_date: Date;
   dispatchedQty: Number;
+  feed_back_tracker: mongoose.Schema.Types.ObjectId[];
   delivery_status: DeliveryStatus;
   dispatched_date: Date;
+  progressTracker: ProgressTrackerEnum;
 }
 
 const ProgressUpdateSchema = new Schema<IProgressUpdate>(
@@ -123,6 +131,17 @@ const ProgressUpdateSchema = new Schema<IProgressUpdate>(
       enum: Object.values(DeliveryStatus),
       default: DeliveryStatus.New,
     },
+    progressTracker: {
+      type: String,
+      enum: Object.values(ProgressTrackerEnum),
+      default: ProgressTrackerEnum.NOT_STARTED,
+    },
+    feed_back_tracker: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "feed_back_tracker_model",
+      },
+    ],
   },
   { timestamps: true },
 );
