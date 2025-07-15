@@ -62,7 +62,7 @@ export default function Sidebar({
               <p className="text-sm">User</p>
               <UserRoundPen className="cursor-pointer hover:text-[#3e9392]" />
             </div>
-            <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2  hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
+            <Card className="w-60 absolute left-full top-1/2 -translate-y-1/2  hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
               {chipGroups.user.map((chip, i) => (
                 <div key={i}>
                   <Link
@@ -131,7 +131,10 @@ export default function Sidebar({
           {/* MasterData icon with submenu */}
           {chipGroups.master.length > 0 && (
             <div className="relative group">
-              <MasterData className="cursor-pointer hover:text-[#3e9392]" />
+              <div className="flex flex-row items-cen gap-2 items-center">
+                <p>Master Data</p>
+                <MasterData className="cursor-pointer hover:text-[#3e9392]" />
+              </div>
               <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
                 {chipGroups.master.map((chip, i) => (
                   <div key={i}>
@@ -153,6 +156,7 @@ export default function Sidebar({
 
           {permissionChip && (
             <Link href={permissionChip.link} className="text-white">
+              <p>Permissions</p>
               <Permissions className="cursor-pointer hover:text-[#3e9392]" />
             </Link>
           )}
