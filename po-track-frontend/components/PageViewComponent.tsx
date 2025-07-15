@@ -5,38 +5,55 @@ import { getData } from "@/core/api/apiHandler";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+type Param = {
+  key: string;
+  value: string | number;
+};
+
 export default function PageViewComponent({
   route,
   columnHeaders,
   queryKey,
   heading,
+  params = [],
 }: {
-  route: any;
-  columnHeaders: {
-    name: string;
-  }[];
-  queryKey: string;
-  heading: any;
+  route: string;
+  columnHeaders: { name: string }[];
+  queryKey: any;
+  heading: string;
+  params?: Param[];
 }) {
   const [page, setPage] = useState<number>(1);
+
+  // Convert params array to query string
+  const queryString = params
+    .map(
+      (param) =>
+        `${encodeURIComponent(param.key)}=${encodeURIComponent(param.value)}`,
+    )
+    .join("&");
+
+  const finalRoute = queryString
+    ? `${route}${page}/10?${queryString}`
+    : `${route}${page}/10`;
+
   const {
     data: getInfo,
     isFetched: isFetchedGetPos,
     isFetching: isFetchingGetPos,
   } = useQuery({
-    queryKey: [queryKey, page],
-    queryFn: () => {
-      return getData(`${route}${page}/10`, {});
-    },
+    queryKey: [queryKey, page, ...params.map((p) => `${p.key}-${p.value}`)],
+    queryFn: () => getData(finalRoute, {}),
   });
+
   const [pages, setPages] = useState<number>(0);
   const [data, setData] = useState<any>([]);
+
   useEffect(() => {
     if (isFetchedGetPos) {
       const { data, total } = getInfo?.data.data;
       setData(data);
-      const pages = Math.ceil(total / 10);
-      setPages(pages);
+      setPages(Math.ceil(total / 10));
     }
   }, [isFetchingGetPos]);
 

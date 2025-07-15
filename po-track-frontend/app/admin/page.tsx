@@ -147,7 +147,7 @@ export default function Page() {
           <div className="left-div  w-1/2 grid grid-cols-2 gap-4 p-2">
             <AnalyticsCard
               title1="Total POs"
-              href1="/admin/po/view"
+              href1={`/admin/po/view?year=${year}`}
               value1={result.totalPOCount}
               title2="value"
               value2={new Intl.NumberFormat("en-IN", {
@@ -158,15 +158,15 @@ export default function Page() {
             />
             <AnalyticsCard
               title1="Total Line Items"
-              href1="/admin/po/li/"
+              href1={`/admin/po/li?year=${year}`}
               value1={result.lineItemData.totalLineItem}
               title2="Open Line Items"
-              href2="/admin/po/openLI/"
+              href2={`/admin/po/openLI?year=${year}`}
               value2={result.lineItemData.openLineItem}
             />
             <AnalyticsCard
               title1="Open POs"
-              href1="/admin/po/openPO"
+              href1={`/admin/po/openPO?year=${year}`}
               value1={result.openPOData.openCount}
               title2="Value"
               value2={new Intl.NumberFormat("en-IN", {
@@ -177,7 +177,7 @@ export default function Page() {
             />
             <AnalyticsCard
               title1="Line Items Dispatched"
-              href1="/admin/po/dispatchedLI"
+              href1={`/admin/po/dispatchedLI?year=${year}`}
               value1={result.dispatchedLIData.count || 0}
               title2="Value"
               value2={new Intl.NumberFormat("en-IN", {

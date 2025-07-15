@@ -1,9 +1,20 @@
+"use client";
+
 import PageViewComponent from "@/components/PageViewComponent";
 import { poRoutes } from "@/core/api/apiRoutes";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function viweOpenLi() {
+export default function ViewOpenLi() {
   const route = poRoutes.viewOpenPOSupplier;
+  const [year, setYear] = useState<any>("NULL");
+  const params = useSearchParams();
 
+  useEffect(() => {
+    if (params.get("year")) {
+      setYear(params.get("year"));
+    }
+  }, []);
   const columnHeaders = [
     {
       name: "Purchase Order Name",
@@ -32,8 +43,9 @@ export default function viweOpenLi() {
     <PageViewComponent
       columnHeaders={columnHeaders}
       heading="View Open Purchase Order"
-      queryKey="get-openPO-data-supplier"
+      queryKey={["get-open-po-data", year]}
       route={route}
+      params={[{ key: "year", value: year }]}
     />
   );
 }

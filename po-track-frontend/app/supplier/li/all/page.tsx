@@ -1,8 +1,20 @@
+"use client";
 import PageViewComponent from "@/components/PageViewComponent";
 import { poRoutes } from "@/core/api/apiRoutes";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function viweLiSupplier() {
+export default function ViewLiSupplier() {
   const route = poRoutes.viewLISupplier;
+  const [year, setYear] = useState<any>("NULL");
+  const params = useSearchParams();
+
+  useEffect(() => {
+    if (params.get("year")) {
+      setYear(params.get("year"));
+    }
+  }, []);
+
   const coloumnHeaders = [
     {
       name: "name",
@@ -38,8 +50,9 @@ export default function viweLiSupplier() {
     <PageViewComponent
       columnHeaders={coloumnHeaders}
       heading="View Line Items"
-      queryKey="get-li-data-supplier"
+      queryKey={["get-li-data", year]}
       route={route}
+      params={[{ key: "year", value: year }]}
     />
   );
 }

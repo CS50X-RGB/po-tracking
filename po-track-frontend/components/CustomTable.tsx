@@ -29,8 +29,6 @@ import { CheckIcon } from "@/public/Icons/CheckIcon";
 import CrossIcon from "@/public/Icons/CrossIcon";
 import PencilIcon from "@/public/Icons/PencilIcon";
 import CustomModal from "./Modal/CustomModal";
-import { useAsyncList } from "@react-stately/data";
-import { localBackend } from "@/core/api/axiosInstance";
 
 interface CustomTableProps {
   page: number;

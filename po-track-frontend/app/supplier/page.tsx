@@ -99,7 +99,7 @@ export default function Supplier() {
           <div className="left-div  w-1/2 grid grid-cols-2 gap-4 p-2">
             <AnalyticsCard
               title1="Total POs"
-              // href1="/admin/po/view"
+              href1={`/admin/po/view?year=${year}`}
               value1={result.totalPOData.totalPOCount}
               title2="value"
               value2={new Intl.NumberFormat("en-IN", {
@@ -110,15 +110,15 @@ export default function Supplier() {
             />
             <AnalyticsCard
               title1="Total Line Items"
-              href1="/supplier/li/all"
+              href1={`/supplier/li/all?year=${year}`}
               value1={result.lineItemData.totalLineItem}
               title2="Open Line Items"
-              href2="/supplier/li/open"
+              href2={`/supplier/li/open?year=${year}`}
               value2={result.lineItemData.openLineItem}
             />
             <AnalyticsCard
               title1="Open POs"
-              href1="/supplier/po/open"
+              href1={`/supplier/po/open?year=${year}`}
               value1={result.openPOData.openCount}
               title2="Value"
               value2={new Intl.NumberFormat("en-IN", {
@@ -129,7 +129,7 @@ export default function Supplier() {
             />
             <AnalyticsCard
               title1="Line Items Dispatched"
-              href1="/supplier/li/dispatched"
+              href1={`/supplier/li/dispatched?year=${year}`}
               value1={result.dispatchedLIData.count || 0}
               title2="Value"
               value2={new Intl.NumberFormat("en-IN", {
