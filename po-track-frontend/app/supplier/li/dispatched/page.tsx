@@ -1,8 +1,20 @@
+"use client";
+
 import PageViewComponent from "@/components/PageViewComponent";
 import { poRoutes } from "@/core/api/apiRoutes";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function viweDispatchedLI() {
+export default function ViewDispatchedLI() {
   const route = poRoutes.viewDispatchedLISupplier;
+  const [year, setYear] = useState<any>("NULL");
+  const params = useSearchParams();
+
+  useEffect(() => {
+    if (params.get("year")) {
+      setYear(params.get("year"));
+    }
+  }, []);
   const coloumnHeaders = [
     {
       name: "name",
@@ -38,8 +50,9 @@ export default function viweDispatchedLI() {
     <PageViewComponent
       columnHeaders={coloumnHeaders}
       heading="View Dispatched Line Items"
-      queryKey="get-dispatchedLI-data-supplier"
+      queryKey={["get-li--dispatched-data", year]}
       route={route}
+      params={[{ key: "year", value: year }]}
     />
   );
 }

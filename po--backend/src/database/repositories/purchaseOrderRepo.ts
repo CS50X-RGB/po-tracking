@@ -158,27 +158,55 @@ class PurchaseOrderRepo {
   public async getAllPO(
     page: number,
     offset: number,
+    year?: number,
     supplierId?: mongoose.Types.ObjectId,
     clientId?: any,
   ) {
     try {
-      const filter: any = {};
+      // If supplierId or year is present, use aggregation pipeline
+      if (supplierId || year) {
+        const matchStage: any = {};
 
-      if (supplierId) {
-        const POs = await PurchaseOrderModel.aggregate([
+        if (supplierId) {
+          matchStage["line_items.supplier"] = supplierId;
+        }
+        console.log(year, "Year");
+        if (year) {
+          matchStage["line_items.exw_date"] = {
+            $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+            $lte: new Date(`${year}-12-31T23:59:59.999Z`),
+          };
+        }
+
+        const pipeline: any[] = [
           {
             $lookup: {
               from: "line_items",
-              localField: "line_items",
+              localField: "lineItem",
               foreignField: "_id",
               as: "line_items",
             },
           },
+          { $unwind: "$line_items" }, // Needed for summing
+          { $match: matchStage },
+
+          // Group to calculate total sum of line items
           {
-            $match: {
-              "line_items.supplier": new mongoose.Types.ObjectId(supplierId),
+            $group: {
+              _id: "$_id",
+              total_sum: { $sum: "$line_items.total_cost" },
+              doc: { $first: "$$ROOT" },
             },
           },
+
+          // Merge total_sum back into original doc
+          {
+            $replaceRoot: {
+              newRoot: { $mergeObjects: ["$doc", { total_sum: "$total_sum" }] },
+            },
+          },
+
+          // Lookups for populating other fields
           {
             $lookup: {
               from: "clients",
@@ -187,7 +215,7 @@ class PurchaseOrderRepo {
               as: "client",
             },
           },
-          { $unwind: "$client" },
+          { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
           {
             $lookup: {
               from: "client_branches",
@@ -196,7 +224,12 @@ class PurchaseOrderRepo {
               as: "client_branch",
             },
           },
-          { $unwind: "$client_branch" },
+          {
+            $unwind: {
+              path: "$client_branch",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
           {
             $lookup: {
               from: "payment_terms",
@@ -205,42 +238,229 @@ class PurchaseOrderRepo {
               as: "payment_term",
             },
           },
-          { $unwind: "$payment_term" },
+          {
+            $unwind: {
+              path: "$payment_term",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
           {
             $lookup: {
-              from: "freight_terms",
+              from: "fright_terms",
               localField: "freight_term",
               foreignField: "_id",
               as: "freight_term",
             },
           },
-          { $unwind: "$freight_term" },
           {
-            $skip: (page - 1) * offset,
+            $unwind: {
+              path: "$freight_term",
+              preserveNullAndEmptyArrays: true,
+            },
           },
+
+          { $skip: (page - 1) * offset },
+          { $limit: offset },
+        ];
+
+        const POs = await PurchaseOrderModel.aggregate(pipeline);
+
+        // Total count
+        const countPipeline = [
           {
-            $limit: offset,
+            $lookup: {
+              from: "line_items",
+              localField: "lineItem",
+              foreignField: "_id",
+              as: "line_items",
+            },
           },
-        ]);
+          { $match: matchStage },
+          { $count: "total" },
+        ];
+
+        const countResult = await PurchaseOrderModel.aggregate(countPipeline);
+        const total = countResult[0]?.total ?? 0;
+
         return {
           data: POs,
-          total: POs,
+          total,
         };
       }
-      if (clientId) {
-        filter.client = clientId;
-      }
-      console.log(filter, "filter");
-      const POs = await PurchaseOrderModel.find(filter)
-        .populate("client")
-        .populate("client_branch")
-        .populate("payment_term")
-        .populate("freight_term")
-        .skip((page - 1) * offset)
-        .limit(offset)
-        .lean();
 
-      const total = await PurchaseOrderModel.countDocuments(filter);
+      let aggregationPipeline: any[] = [];
+      let countFilter: any = {};
+
+      if (clientId) {
+        aggregationPipeline = [
+          {
+            $lookup: {
+              from: "line_items",
+              localField: "lineItem",
+              foreignField: "_id",
+              as: "line_items",
+            },
+          },
+          { $unwind: "$line_items" }, // Needed for summing
+          // { $match: matchStage },
+
+          // Group to calculate total sum of line items
+          {
+            $group: {
+              _id: "$_id",
+              total_sum: { $sum: "$line_items.total_cost" },
+              doc: { $first: "$$ROOT" },
+            },
+          },
+          {
+            $replaceRoot: {
+              newRoot: { $mergeObjects: ["$doc", { total_sum: "$total_sum" }] },
+            },
+          },
+
+          // Lookups for populating other fields
+          {
+            $lookup: {
+              from: "clients",
+              localField: "client",
+              foreignField: "_id",
+              as: "client",
+            },
+          },
+          { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
+          {
+            $lookup: {
+              from: "client_branches",
+              localField: "client_branch",
+              foreignField: "_id",
+              as: "client_branch",
+            },
+          },
+          {
+            $unwind: {
+              path: "$client_branch",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "payment_terms",
+              localField: "payment_term",
+              foreignField: "_id",
+              as: "payment_term",
+            },
+          },
+          {
+            $unwind: {
+              path: "$payment_term",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "fright_terms",
+              localField: "freight_term",
+              foreignField: "_id",
+              as: "freight_term",
+            },
+          },
+          {
+            $unwind: {
+              path: "$freight_term",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          { $skip: (page - 1) * offset },
+          { $limit: offset },
+        ];
+
+        countFilter = { client: clientId };
+      } else {
+        aggregationPipeline = [
+          {
+            $lookup: {
+              from: "line_items",
+              localField: "lineItem",
+              foreignField: "_id",
+              as: "line_items",
+            },
+          },
+          { $unwind: "$line_items" }, // Needed for summing
+          {
+            $group: {
+              _id: "$_id",
+              total_sum: { $sum: "$line_items.total_cost" },
+              doc: { $first: "$$ROOT" },
+            },
+          },
+          {
+            $replaceRoot: {
+              newRoot: { $mergeObjects: ["$doc", { total_sum: "$total_sum" }] },
+            },
+          },
+
+          // Lookups for populating other fields
+          {
+            $lookup: {
+              from: "clients",
+              localField: "client",
+              foreignField: "_id",
+              as: "client",
+            },
+          },
+          { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
+          {
+            $lookup: {
+              from: "client_branches",
+              localField: "client_branch",
+              foreignField: "_id",
+              as: "client_branch",
+            },
+          },
+          {
+            $unwind: {
+              path: "$client_branch",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "payment_terms",
+              localField: "payment_term",
+              foreignField: "_id",
+              as: "payment_term",
+            },
+          },
+          {
+            $unwind: {
+              path: "$payment_term",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "fright_terms",
+              localField: "freight_term",
+              foreignField: "_id",
+              as: "freight_term",
+            },
+          },
+          {
+            $unwind: {
+              path: "$freight_term",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          { $skip: (page - 1) * offset },
+          { $limit: offset },
+        ];
+      }
+
+      const POs = await PurchaseOrderModel.aggregate(aggregationPipeline);
+      const total = await PurchaseOrderModel.countDocuments(countFilter);
+
       return {
         data: POs,
         total,
@@ -249,10 +469,12 @@ class PurchaseOrderRepo {
       throw new Error(`Error while getting the PO`);
     }
   }
+
   //get open value-> not completed
   public async getOpenPO(
     page: number,
     offset: number,
+    year?: number,
     supplierId?: any,
     clientId?: any,
   ) {
@@ -262,10 +484,18 @@ class PurchaseOrderRepo {
       };
 
       if (supplierId) {
-        matchStage["lineItemDocs.supplier"] = new Types.ObjectId(supplierId);
+        matchStage["lineItemDocs.supplier"] = new mongoose.Types.ObjectId(
+          supplierId,
+        );
       }
       if (clientId) {
         matchStage["client"] = new Types.ObjectId(clientId);
+      }
+      if (year) {
+        matchStage["lineItemDocs.exw_date"] = {
+          $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${year}-12-31T23:59:59.999Z`),
+        };
       }
 
       const pipeline = [
@@ -279,8 +509,18 @@ class PurchaseOrderRepo {
         },
         { $unwind: "$lineItemDocs" },
         { $match: matchStage },
-
-        // Populate client_branch
+        {
+          $group: {
+            _id: "$_id",
+            total_sum: { $sum: "$lineItemDocs.total_cost" },
+            doc: { $first: "$$ROOT" },
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: { $mergeObjects: ["$doc", { total_sum: "$total_sum" }] },
+          },
+        },
         {
           $lookup: {
             from: "client_branches",

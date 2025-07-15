@@ -73,6 +73,7 @@ class LineItemRepo {
   public async getAllLineItems(
     page: number,
     offset: number,
+    year?: number,
     supplierId?: any,
     clientId?: any,
   ) {
@@ -81,6 +82,14 @@ class LineItemRepo {
 
       if (supplierId) {
         filter.supplier = supplierId;
+      }
+      if (year) {
+        const start = new Date(`${year}-01-01T00:00:00.000Z`);
+        const end = new Date(`${year}-12-31T23:59:59.999Z`);
+        filter.exw_date = {
+          $gte: start,
+          $lte: end,
+        };
       }
       const LIs = await LineItemModel.find(filter)
         .populate("partNumber")
@@ -104,6 +113,7 @@ class LineItemRepo {
   public async getOpenLineItems(
     page: number,
     offset: number,
+    year?: number,
     supplierId?: any,
     clientId?: any,
   ) {
@@ -114,6 +124,12 @@ class LineItemRepo {
 
       if (supplierId) {
         filter.supplier = supplierId;
+      }
+      if (year) {
+        filter.exw_date = {
+          $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${year}-12-31T23:59:59.999Z`),
+        };
       }
       const openLIs = await LineItemModel.find(filter)
         .populate("partNumber")
@@ -178,6 +194,7 @@ class LineItemRepo {
   public async getDispatchedLineItems(
     page: number,
     offset: number,
+    year?: number,
     supplierId?: mongoose.Types.ObjectId,
     clientId?: mongoose.Types.ObjectId,
   ) {
@@ -195,7 +212,18 @@ class LineItemRepo {
           },
         },
         { $unwind: "$lineItemDocs" },
-
+        ...(year
+          ? [
+              {
+                $match: {
+                  "lineItemDocs.exw_date": {
+                    $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                    $lte: new Date(`${year}-12-31T23:59:59.999Z`),
+                  },
+                },
+              },
+            ]
+          : []),
         // Populate partNumber
         {
           $lookup: {

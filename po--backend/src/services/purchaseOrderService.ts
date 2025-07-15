@@ -43,16 +43,19 @@ class PurchaseOrderService {
   //Repo call to fetch all the POs
   public async getPO(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
       const clientId = req.user?.client
         ? new mongoose.Types.ObjectId(req.user.client)
         : undefined;
 
+      const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-
+      if (supplier != "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -60,8 +63,25 @@ class PurchaseOrderService {
           400,
         );
       }
-      console.log(supplierId, "supplier");
-      const pos = await this.poRepo.getAllPO(page, offset, supplierId);
+      console.log(supplierId, "ID");
+      let pos: any = [];
+      if (supplierId !== undefined) {
+        if (year !== "NULL") {
+          console.log("Case 1", year);
+          pos = await this.poRepo.getAllPO(page, offset, year, supplierId);
+        } else {
+          console.log("Case 2");
+          pos = await this.poRepo.getAllPO(page, offset, undefined, supplierId);
+        }
+      } else {
+        if (year !== "NULL") {
+          console.log("Case 3");
+          pos = await this.poRepo.getAllPO(page, offset, year);
+        } else {
+          console.log("Case 4");
+          pos = await this.poRepo.getAllPO(page, offset);
+        }
+      }
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting PO", 400);
@@ -69,13 +89,17 @@ class PurchaseOrderService {
   }
   public async getopenPO(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
+      const { year, supplier }: any = req.query;
       let pos: any = [];
-
+      console.log(supplier, "supplier");
+      // if (supplier !== "NULL") {
+      //   supplierId = new mongoose.Types.ObjectId(supplier);
+      // }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -83,11 +107,27 @@ class PurchaseOrderService {
           400,
         );
       }
-
+      console.log(supplierId, supplier, req.user);
       if (supplierId) {
-        pos = await this.poRepo.getOpenPO(page, offset, supplierId);
+        if (year != "NULL") {
+          pos = await this.poRepo.getOpenPO(page, offset, year, supplierId);
+        } else {
+          console.log("Case 2");
+          pos = await this.poRepo.getOpenPO(
+            page,
+            offset,
+            undefined,
+            supplierId,
+          );
+        }
       } else {
-        pos = await this.poRepo.getOpenPO(page, offset);
+        if (year != "NULL") {
+          console.log("Case 3");
+          pos = await this.poRepo.getOpenPO(page, offset, year);
+        } else {
+          console.log("Case 4");
+          pos = await this.poRepo.getOpenPO(page, offset);
+        }
       }
 
       return res.sendArrayFormatted(pos, "All POs fetched successfully", 200);
@@ -208,8 +248,7 @@ class PurchaseOrderService {
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
 
-      console.log("user is ", req.user);
-      console.log("supplier id is", supplierId);
+      const { year }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
 
@@ -220,8 +259,35 @@ class PurchaseOrderService {
           400,
         );
       }
-
-      const pos = await this.liRepo.getAllLineItems(page, offset, supplierId);
+      let pos: any = [];
+      if (supplierId) {
+        if (year !== "NULL") {
+          pos = await this.liRepo.getAllLineItems(
+            page,
+            offset,
+            year,
+            supplierId,
+          );
+        } else {
+          pos = await this.liRepo.getAllLineItems(
+            page,
+            offset,
+            undefined,
+            supplierId,
+          );
+        }
+      } else {
+        if (year !== "NULL") {
+          pos = await this.liRepo.getAllLineItems(
+            page,
+            offset,
+            year,
+            supplierId,
+          );
+        } else {
+          pos = await this.liRepo.getAllLineItems(page, offset);
+        }
+      }
       return res.sendArrayFormatted(pos, "All LIs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting LI", 400);
@@ -233,6 +299,7 @@ class PurchaseOrderService {
       const supplierId = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
+      const { year }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
 
@@ -243,8 +310,40 @@ class PurchaseOrderService {
           400,
         );
       }
-
-      const pos = await this.liRepo.getOpenLineItems(page, offset, supplierId);
+      let pos: any = [];
+      if (supplierId) {
+        if (year != "NULL") {
+          pos = await this.liRepo.getOpenLineItems(
+            page,
+            offset,
+            year,
+            supplierId,
+          );
+        } else {
+          pos = await this.liRepo.getOpenLineItems(
+            page,
+            offset,
+            undefined,
+            supplierId,
+          );
+        }
+      } else {
+        if (year != "NULL") {
+          pos = await this.liRepo.getOpenLineItems(
+            page,
+            offset,
+            year,
+            undefined,
+          );
+        } else {
+          pos = await this.liRepo.getOpenLineItems(
+            page,
+            offset,
+            undefined,
+            undefined,
+          );
+        }
+      }
       return res.sendArrayFormatted(pos, "Open LIs fetched successfully", 200);
     } catch (error) {
       return res.sendError(error, "Error while getting Open LI", 400);
@@ -258,6 +357,7 @@ class PurchaseOrderService {
         : undefined;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
+      const { year }: any = req.query;
 
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
@@ -266,12 +366,22 @@ class PurchaseOrderService {
           400,
         );
       }
-
-      const pos = await this.liRepo.getDispatchedLineItems(
-        page,
-        offset,
-        supplierId,
-      );
+      let pos: any = [];
+      if (year != "NULL") {
+        pos = await this.liRepo.getDispatchedLineItems(
+          page,
+          offset,
+          year,
+          supplierId,
+        );
+      } else {
+        pos = await this.liRepo.getDispatchedLineItems(
+          page,
+          offset,
+          undefined,
+          supplierId,
+        );
+      }
       return res.sendArrayFormatted(
         pos,
         "DispatchedLIs fetched successfully",

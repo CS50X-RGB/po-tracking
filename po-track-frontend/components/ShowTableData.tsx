@@ -194,6 +194,8 @@ export default function ShowTableData({
             onClick={() => deleteByPartNumberId.mutate(item._id)}
           />
         );
+      case "Total PO Value":
+        return <p>Rs {item.total_sum}</p>;
       case "Date Required Changes":
         if (item?.new_date_required_date) {
           return (

@@ -47,14 +47,21 @@ export default function Sidebar({
         <div className="flex flex-col mx-auto space-y-8  justify-evenly relative">
           {/* Home (no submenu) */}
           {dashboardChip && (
-            <Link href={dashboardChip.link} className="text-white">
+            <Link
+              href={dashboardChip.link}
+              className="flex flex-row text-sm font-bold items-center text-white"
+            >
+              <p>Home</p>
               <House className="cursor-pointer hover:text-[#3e9392]" />
             </Link>
           )}
 
           {/* User icon with submenu */}
           <div className="relative group">
-            <UserRoundPen className="cursor-pointer hover:text-[#3e9392]" />
+            <div className="flex flex-row items-center gap-2">
+              <p className="text-sm">User</p>
+              <UserRoundPen className="cursor-pointer hover:text-[#3e9392]" />
+            </div>
             <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2  hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
               {chipGroups.user.map((chip, i) => (
                 <div key={i}>
@@ -76,7 +83,10 @@ export default function Sidebar({
 
           {/* PurchaseOrder icon with submenu */}
           <div className="relative group">
-            <PurchaseOrder className="cursor-pointer hover:text-[#3e9392]" />
+            <div className="flex flex-row items-center gap-2">
+              <p className="text-sm">PO</p>
+              <PurchaseOrder className="cursor-pointer hover:text-[#3e9392]" />
+            </div>
             <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2  hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
               {chipGroups.purchase.map((chip, i) => (
                 <div key={i}>
@@ -93,50 +103,53 @@ export default function Sidebar({
               ))}
             </Card>
           </div>
-
-          {/* Partnumber icon with submenu */}
-          <div className="relative group">
-            <Partnumber className="cursor-pointer hover:text-[#3e9392]" />
-            <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2  hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
-              {chipGroups.part.map((chip, i) => (
-                <div key={i}>
-                  <Link
-                    key={i}
-                    href={chip.link}
-                    className="hover:underline text-sm px-2 py-1 text-white"
-                  >
-                    {chip.name}
-                  </Link>
-
-                  {i < chipGroups.part.length - 1 && (
-                    <div className="border-t border-white opacity-30 my-1" />
-                  )}
-                </div>
-              ))}
-            </Card>
-          </div>
+          {chipGroups.part.length > 0 && (
+            <div className="relative group">
+              {/* Partnumber icon with submenu */}
+              <div className="flex flex-row gap-2 items-center">
+                <p className="text-[16px]">PartNo</p>
+                <Partnumber className="cursor-pointer hover:text-[#3e9392]" />
+              </div>
+              <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
+                {chipGroups.part.map((chip, i) => (
+                  <div key={i}>
+                    <Link
+                      href={chip.link}
+                      className="hover:underline text-sm px-2 py-1 text-white"
+                    >
+                      {chip.name}
+                    </Link>
+                    {i < chipGroups.part.length - 1 && (
+                      <div className="border-t border-white opacity-30 my-1" />
+                    )}
+                  </div>
+                ))}
+              </Card>
+            </div>
+          )}
 
           {/* MasterData icon with submenu */}
-          <div className="relative group">
-            <MasterData className="cursor-pointer hover:text-[#3e9392]" />
-            <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2  hidden group-hover:flex flex-col  text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
-              {chipGroups.master.map((chip, i) => (
-                <div key={i}>
-                  <Link
-                    key={i}
-                    href={chip.link}
-                    className="hover:underline text-sm px-2 py-1 text-white"
-                  >
-                    {chip.name}
-                  </Link>
+          {chipGroups.master.length > 0 && (
+            <div className="relative group">
+              <MasterData className="cursor-pointer hover:text-[#3e9392]" />
+              <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
+                {chipGroups.master.map((chip, i) => (
+                  <div key={i}>
+                    <Link
+                      href={chip.link}
+                      className="hover:underline text-sm px-2 py-1 text-white"
+                    >
+                      {chip.name}
+                    </Link>
 
-                  {i < chipGroups.master.length - 1 && (
-                    <div className="border-t border-white opacity-30 my-1" />
-                  )}
-                </div>
-              ))}
-            </Card>
-          </div>
+                    {i < chipGroups.master.length - 1 && (
+                      <div className="border-t border-white opacity-30 my-1" />
+                    )}
+                  </div>
+                ))}
+              </Card>
+            </div>
+          )}
 
           {permissionChip && (
             <Link href={permissionChip.link} className="text-white">
