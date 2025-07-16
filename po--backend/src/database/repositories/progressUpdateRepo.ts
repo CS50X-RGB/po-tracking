@@ -429,7 +429,7 @@ class ProgressUpdateRepo {
       if (status) {
         filter.delivery_status = status;
       }
-      console.log(filter, "filter");
+
       const progressUpdates = await ProgressUpdateModel.find(filter)
         .populate({
           path: "LI",

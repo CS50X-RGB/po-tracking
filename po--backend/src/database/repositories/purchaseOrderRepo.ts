@@ -484,9 +484,7 @@ class PurchaseOrderRepo {
       };
 
       if (supplierId) {
-        matchStage["lineItemDocs.supplier"] = new mongoose.Types.ObjectId(
-          supplierId,
-        );
+        matchStage["lineItemDocs.supplier"] = supplierId;
       }
       if (clientId) {
         matchStage["client"] = new Types.ObjectId(clientId);
@@ -497,6 +495,7 @@ class PurchaseOrderRepo {
           $lte: new Date(`${year}-12-31T23:59:59.999Z`),
         };
       }
+      console.log(matchStage, "matchStage");
 
       const pipeline = [
         {
@@ -547,14 +546,17 @@ class PurchaseOrderRepo {
         // Populate freight_term
         {
           $lookup: {
-            from: "freight_terms",
+            from: "fright_terms",
             localField: "freight_term",
             foreignField: "_id",
             as: "freight_term",
           },
         },
         {
-          $unwind: { path: "$freight_term", preserveNullAndEmptyArrays: true },
+          $unwind: {
+            path: "$freight_term",
+            preserveNullAndEmptyArrays: true,
+          },
         },
 
         // Populate payment_term

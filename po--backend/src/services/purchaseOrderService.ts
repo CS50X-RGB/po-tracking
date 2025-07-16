@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import LiRepo from "../database/repositories/liRepo";
 import { LineItemCreate } from "../interfaces/lineItemInterface";
 import mongoose from "mongoose";
+import { log } from "console";
 
 class PurchaseOrderService {
   private poRepo: PurchaseOrderRepo;
@@ -97,9 +98,10 @@ class PurchaseOrderService {
       const { year, supplier }: any = req.query;
       let pos: any = [];
       console.log(supplier, "supplier");
-      // if (supplier !== "NULL") {
-      //   supplierId = new mongoose.Types.ObjectId(supplier);
-      // }
+      if (supplier !== undefined && supplier !== "NULL") {
+        console.log("Changing");
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -107,7 +109,7 @@ class PurchaseOrderService {
           400,
         );
       }
-      console.log(supplierId, supplier, req.user);
+      console.log(req.user?.supplier, supplierId, "here in open po");
       if (supplierId) {
         if (year != "NULL") {
           pos = await this.poRepo.getOpenPO(page, offset, year, supplierId);
@@ -244,14 +246,16 @@ class PurchaseOrderService {
 
   public async getLI(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId: any = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
 
-      const { year }: any = req.query;
+      const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-
+      if (supplier !== undefined && supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -260,8 +264,10 @@ class PurchaseOrderService {
         );
       }
       let pos: any = [];
+      console.log(supplierId, "id");
       if (supplierId) {
         if (year !== "NULL") {
+          console.log("Case 1");
           pos = await this.liRepo.getAllLineItems(
             page,
             offset,
@@ -269,6 +275,7 @@ class PurchaseOrderService {
             supplierId,
           );
         } else {
+          log("case 2");
           pos = await this.liRepo.getAllLineItems(
             page,
             offset,
@@ -278,6 +285,7 @@ class PurchaseOrderService {
         }
       } else {
         if (year !== "NULL") {
+          log("Case 3");
           pos = await this.liRepo.getAllLineItems(
             page,
             offset,
@@ -285,6 +293,7 @@ class PurchaseOrderService {
             supplierId,
           );
         } else {
+          log("case 4");
           pos = await this.liRepo.getAllLineItems(page, offset);
         }
       }
@@ -296,13 +305,15 @@ class PurchaseOrderService {
 
   public async getOpenLI(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId: any = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
-      const { year }: any = req.query;
+      const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-
+      if (supplier !== undefined && supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -352,13 +363,15 @@ class PurchaseOrderService {
 
   public async getDispatchedLI(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId: any = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-      const { year }: any = req.query;
-
+      const { year, supplier }: any = req.query;
+      if (supplier !== undefined && supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -367,20 +380,28 @@ class PurchaseOrderService {
         );
       }
       let pos: any = [];
-      if (year != "NULL") {
-        pos = await this.liRepo.getDispatchedLineItems(
-          page,
-          offset,
-          year,
-          supplierId,
-        );
+      if (supplierId) {
+        if (year != "NULL") {
+          pos = await this.liRepo.getDispatchedLineItems(
+            page,
+            offset,
+            year,
+            supplierId,
+          );
+        } else {
+          pos = await this.liRepo.getDispatchedLineItems(
+            page,
+            offset,
+            undefined,
+            supplierId,
+          );
+        }
       } else {
-        pos = await this.liRepo.getDispatchedLineItems(
-          page,
-          offset,
-          undefined,
-          supplierId,
-        );
+        if (year != "NULL") {
+          pos = await this.liRepo.getDispatchedLineItems(page, offset, year);
+        } else {
+          pos = await this.liRepo.getDispatchedLineItems(page, offset);
+        }
       }
       return res.sendArrayFormatted(
         pos,

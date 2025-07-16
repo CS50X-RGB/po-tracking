@@ -7,11 +7,15 @@ import { useEffect, useState } from "react";
 export default function ViweOpenLi() {
   const route = poRoutes.viewDispatchedLI;
   const [year, setYear] = useState<any>("NULL");
+  const [supplier, setSupplier] = useState<any>("NULL");
   const params = useSearchParams();
 
   useEffect(() => {
     if (params.get("year")) {
       setYear(params.get("year"));
+    }
+    if (params.get("supplier")) {
+      setSupplier(params.get("supplier"));
     }
   }, [year]);
 
@@ -52,7 +56,10 @@ export default function ViweOpenLi() {
       heading="View Dispatched Line Items"
       queryKey={["get-dispatchedLI-data", year]}
       route={route}
-      params={[{ key: "year", value: year }]}
+      params={[
+        { key: "year", value: year },
+        { key: "supplier", value: supplier },
+      ]}
     />
   );
 }

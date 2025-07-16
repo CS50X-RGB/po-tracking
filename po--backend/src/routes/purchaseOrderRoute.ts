@@ -47,14 +47,27 @@ router.put(
 );
 
 //get open PO
-router.get("/open/:page/:offset", poService.getopenPO.bind(poService));
+router.get(
+  "/open/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  poService.getopenPO.bind(poService),
+);
 
-router.get("/li/all/:page/:offset", poService.getLI.bind(poService));
+router.get(
+  "/li/all/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  poService.getLI.bind(poService),
+);
 
-router.get("/li/open/:page/:offset", poService.getOpenLI.bind(poService));
+router.get(
+  "/li/open/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
+  poService.getOpenLI.bind(poService),
+);
 
 router.get(
   "/li/dispatched/:page/:offset",
+  userMiddleware.verify.bind(userMiddleware),
   poService.getDispatchedLI.bind(poService),
 );
 
