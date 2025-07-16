@@ -94,7 +94,9 @@ export default function Admin({ children }: { children: React.ReactNode }) {
       chip.name.toLowerCase().includes("master"),
     ),
     part: chips.filter((chip: any) => chip.name.toLowerCase().includes("part")),
-
+    logistics: chips.filter((chip: any) =>
+      chip.name.toLowerCase().includes("logistics"),
+    ),
     other: chips.filter(
       (chip: any) =>
         !chip.name.toLowerCase().includes("user") &&

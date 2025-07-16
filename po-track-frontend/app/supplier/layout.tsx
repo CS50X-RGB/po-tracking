@@ -7,6 +7,7 @@ import { Spinner, Chip, Button, User, Link } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { currentUser } from "@/core/api/localStorageKeys";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function Supplier({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>({});
@@ -82,47 +83,81 @@ export default function Supplier({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(currentUser);
     router.push("/login");
   };
+  const categorizedChips = {
+    user: chips.filter((chip: any) => chip.name.toLowerCase().includes("user")),
+    purchase: chips.filter((chip: any) =>
+      chip.name.toLowerCase().includes("purchase"),
+    ),
+    master: chips.filter((chip: any) =>
+      chip.name.toLowerCase().includes("master"),
+    ),
+    part: chips.filter((chip: any) => chip.name.toLowerCase().includes("part")),
+    logistics: chips.filter((chip: any) =>
+      chip.name.toLowerCase().includes("logistics"),
+    ),
+    other: chips.filter(
+      (chip: any) =>
+        !chip.name.toLowerCase().includes("user") &&
+        !chip.name.toLowerCase().includes("purchase") &&
+        !chip.name.toLowerCase().includes("master"),
+    ),
+  };
+
+  console.log("Purchase order realted chips ");
+  console.log(categorizedChips.purchase);
 
   return (
-    <>
-      <div className="flex flex-col-reverse md:flex-row justify-between p-4 w-full items-center">
-        <div className="flex flex-col p-4 gap-2">
-          <h1 className="text-2xl font-bold">
-            {getProfile?.data?.data?.role?.name} View
-          </h1>
-          <div className="flex flex-wrap gap-4 flex-row">
-            {chips.map((c: any, index: number) => {
-              return (
-                <Chip
-                  key={index}
-                  onClick={() => router.push(c.link)}
-                  color="primary"
-                  className="cursor-pointer"
-                >
-                  {c.name}
-                </Chip>
-              );
-            })}
+    <div className="flex">
+      {/* Sidebar on the left */}
+      <Sidebar
+        user={user}
+        buttonHandler={handleLogout}
+        chipGroups={categorizedChips}
+      />
+
+      {/* Main content area pushed right */}
+      <div className="ml-32 flex-1">
+        <div className="flex flex-row justify-between p-4 w-full items-center">
+          <div className="flex flex-col p-4 gap-2">
+            <h1 className="text-2xl font-bold">
+              {getProfile?.data?.data?.role?.name} View
+            </h1>
+            {/* <div className="flex flex-wrap gap-4 flex-row">
+              {chips.map((c: any, index: number) => {
+                return (
+                  <Chip
+                    key={index}
+                    onClick={() => router.push(c.link)}
+                    color="primary"
+                    className="cursor-pointer"
+                  >
+                    {c.name}
+                  </Chip>
+                );
+              })}
+            </div> */}
           </div>
+          {/* <div className="flex flex-row gap-4 p-4">
+            <User
+              avatarProps={{
+                src: "https://avatars.githubusercontent.com/u/30373425?v=4",
+              }}
+              description={
+                <Link href="" size="sm">
+                  {user.email}
+                </Link>
+              }
+              name={user.name}
+            />
+            <Button onPress={handleLogout} color="danger">
+              Logout
+            </Button>
+          </div> */}
         </div>
-        <div className="flex flex-row gap-4 p-4">
-          <User
-            avatarProps={{
-              src: "https://avatars.githubusercontent.com/u/30373425?v=4",
-            }}
-            description={
-              <Link href="" size="sm">
-                {user.email}
-              </Link>
-            }
-            name={user.name}
-          />
-          <Button onPress={handleLogout} color="danger">
-            Logout
-          </Button>
-        </div>
+
+        {/* Page Content */}
+        <div className="p-4">{children}</div>
       </div>
-      {children}
-    </>
+    </div>
   );
 }
