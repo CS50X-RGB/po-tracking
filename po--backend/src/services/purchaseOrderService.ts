@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import LiRepo from "../database/repositories/liRepo";
 import { LineItemCreate } from "../interfaces/lineItemInterface";
 import mongoose from "mongoose";
+import { log } from "console";
 
 class PurchaseOrderService {
   private poRepo: PurchaseOrderRepo;
@@ -97,7 +98,8 @@ class PurchaseOrderService {
       const { year, supplier }: any = req.query;
       let pos: any = [];
       console.log(supplier, "supplier");
-      if (supplier !== "NULL") {
+      if (supplier !== undefined && supplier !== "NULL") {
+        console.log("Changing");
         supplierId = new mongoose.Types.ObjectId(supplier);
       }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
@@ -107,7 +109,7 @@ class PurchaseOrderService {
           400,
         );
       }
-
+      console.log(req.user?.supplier, supplierId, "here in open po");
       if (supplierId) {
         if (year != "NULL") {
           pos = await this.poRepo.getOpenPO(page, offset, year, supplierId);
@@ -251,7 +253,7 @@ class PurchaseOrderService {
       const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-      if (supplier !== "NULL") {
+      if (supplier !== undefined && supplier !== "NULL") {
         supplierId = new mongoose.Types.ObjectId(supplier);
       }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
@@ -262,8 +264,10 @@ class PurchaseOrderService {
         );
       }
       let pos: any = [];
+      console.log(supplierId, "id");
       if (supplierId) {
         if (year !== "NULL") {
+          console.log("Case 1");
           pos = await this.liRepo.getAllLineItems(
             page,
             offset,
@@ -271,6 +275,7 @@ class PurchaseOrderService {
             supplierId,
           );
         } else {
+          log("case 2");
           pos = await this.liRepo.getAllLineItems(
             page,
             offset,
@@ -280,6 +285,7 @@ class PurchaseOrderService {
         }
       } else {
         if (year !== "NULL") {
+          log("Case 3");
           pos = await this.liRepo.getAllLineItems(
             page,
             offset,
@@ -287,6 +293,7 @@ class PurchaseOrderService {
             supplierId,
           );
         } else {
+          log("case 4");
           pos = await this.liRepo.getAllLineItems(page, offset);
         }
       }
@@ -304,7 +311,7 @@ class PurchaseOrderService {
       const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-      if (supplier !== "NULL") {
+      if (supplier !== undefined && supplier !== "NULL") {
         supplierId = new mongoose.Types.ObjectId(supplier);
       }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
@@ -362,7 +369,7 @@ class PurchaseOrderService {
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
       const { year, supplier }: any = req.query;
-      if (supplier !== "NULL") {
+      if (supplier !== undefined && supplier !== "NULL") {
         supplierId = new mongoose.Types.ObjectId(supplier);
       }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
