@@ -10,6 +10,7 @@ import {
   Codesandbox as Logo,
   Cog as Partnumber,
   LogOut,
+  Ellipsis,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -21,6 +22,7 @@ interface SidebarProps {
     master: any[];
     other: any[];
     part: any[];
+    logistics: any[];
   };
 }
 export default function Sidebar({
@@ -49,7 +51,7 @@ export default function Sidebar({
           {dashboardChip && (
             <Link
               href={dashboardChip.link}
-              className="flex flex-row-reverse gap-2 text-sm font-bold items-center text-white"
+              className="flex flex-row-reverse w-full justify-center gap-2 text-sm font-bold items-center text-white"
             >
               <p>Home</p>
               <House className="cursor-pointer hover:text-[#3e9392]" />
@@ -58,7 +60,7 @@ export default function Sidebar({
 
           {/* User icon with submenu */}
           <div className="relative group">
-            <div className="flex flex-row-reverse items-center gap-2">
+            <div className="flex flex-row-reverse font-bold w-full justify-center items-center gap-2">
               <p className="text-sm">User</p>
               <UserRoundPen className="cursor-pointer hover:text-[#3e9392]" />
             </div>
@@ -83,7 +85,7 @@ export default function Sidebar({
 
           {/* PurchaseOrder icon with submenu */}
           <div className="relative group">
-            <div className="flex flex-row-reverse items-center gap-2">
+            <div className="flex flex-row-reverse justify-center w-full font-bold items-center gap-2">
               <p className="text-sm">PO</p>
               <PurchaseOrder className="cursor-pointer hover:text-[#3e9392]" />
             </div>
@@ -106,8 +108,8 @@ export default function Sidebar({
           {chipGroups.part.length > 0 && (
             <div className="relative group">
               {/* Partnumber icon with submenu */}
-              <div className="flex flex-row-reverse gap-2 items-center">
-                <p className="text-[16px]">PartNo</p>
+              <div className="flex flex-row-reverse justify-center gap-2 items-center">
+                <p className="text-sm">Part Number</p>
                 <Partnumber className="cursor-pointer hover:text-[#3e9392]" />
               </div>
               <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
@@ -131,8 +133,8 @@ export default function Sidebar({
           {/* MasterData icon with submenu */}
           {chipGroups.master.length > 0 && (
             <div className="relative group">
-              <div className="flex flex-row-reverse items-center gap-2">
-                <p>Master Data</p>
+              <div className="flex flex-row-reverse font-bold justify-center w-full items-center gap-2">
+                <p className="text-sm">Master Data</p>
                 <MasterData className="cursor-pointer hover:text-[#3e9392]" />
               </div>
               <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
@@ -153,13 +155,36 @@ export default function Sidebar({
               </Card>
             </div>
           )}
+          {chipGroups.other.length > 0 && (
+            <div className="relative group">
+              <div className="flex flex-row-reverse cursor-pointer font-bold justify-center w-full items-center gap-2">
+                <p className="text-sm">Other</p>
+                <Ellipsis className="cursor-pointer hover:text-[#3e9392]" />
+              </div>
+              <Card className="w-52 absolute left-full top-1/2 -translate-y-1/2 hidden group-hover:flex flex-col text-black shadow-lg rounded p-2 z-50 border-2 border-[#3e9392]">
+                {chipGroups.other.map((chip, i) => (
+                  <div key={i}>
+                    <Link
+                      href={chip.link}
+                      className="hover:underline text-sm px-2 py-1 text-white"
+                    >
+                      {chip.name}
+                    </Link>
 
+                    {i < chipGroups.master.length - 1 && (
+                      <div className="border-t border-white opacity-30 my-1" />
+                    )}
+                  </div>
+                ))}
+              </Card>
+            </div>
+          )}
           {permissionChip && (
             <Link
               href={permissionChip.link}
-              className="text-white flex flex-row items-center gap-2"
+              className="text-white flex flex-row-reverse font-bold w-full items-center gap-2"
             >
-              <p>Permissions</p>
+              <p className="text-sm">Permissions</p>
               <Permissions className="cursor-pointer hover:text-[#3e9392]" />
             </Link>
           )}
