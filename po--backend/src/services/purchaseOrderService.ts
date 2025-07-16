@@ -97,9 +97,9 @@ class PurchaseOrderService {
       const { year, supplier }: any = req.query;
       let pos: any = [];
       console.log(supplier, "supplier");
-      // if (supplier !== "NULL") {
-      //   supplierId = new mongoose.Types.ObjectId(supplier);
-      // }
+      if (supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -107,7 +107,7 @@ class PurchaseOrderService {
           400,
         );
       }
-      console.log(supplierId, supplier, req.user);
+
       if (supplierId) {
         if (year != "NULL") {
           pos = await this.poRepo.getOpenPO(page, offset, year, supplierId);
@@ -244,14 +244,16 @@ class PurchaseOrderService {
 
   public async getLI(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId: any = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
 
-      const { year }: any = req.query;
+      const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-
+      if (supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -296,13 +298,15 @@ class PurchaseOrderService {
 
   public async getOpenLI(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId: any = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
-      const { year }: any = req.query;
+      const { year, supplier }: any = req.query;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-
+      if (supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -352,13 +356,15 @@ class PurchaseOrderService {
 
   public async getDispatchedLI(req: Request, res: Response) {
     try {
-      const supplierId = req.user?.supplier
+      let supplierId: any = req.user?.supplier
         ? new mongoose.Types.ObjectId(req.user.supplier)
         : undefined;
       const page = parseInt(req.params.page);
       const offset = parseInt(req.params.offset);
-      const { year }: any = req.query;
-
+      const { year, supplier }: any = req.query;
+      if (supplier !== "NULL") {
+        supplierId = new mongoose.Types.ObjectId(supplier);
+      }
       if (isNaN(page) || isNaN(offset) || page <= 0 || offset <= 0) {
         return res.sendError(
           "Invalid pagination parameters",
@@ -367,20 +373,28 @@ class PurchaseOrderService {
         );
       }
       let pos: any = [];
-      if (year != "NULL") {
-        pos = await this.liRepo.getDispatchedLineItems(
-          page,
-          offset,
-          year,
-          supplierId,
-        );
+      if (supplierId) {
+        if (year != "NULL") {
+          pos = await this.liRepo.getDispatchedLineItems(
+            page,
+            offset,
+            year,
+            supplierId,
+          );
+        } else {
+          pos = await this.liRepo.getDispatchedLineItems(
+            page,
+            offset,
+            undefined,
+            supplierId,
+          );
+        }
       } else {
-        pos = await this.liRepo.getDispatchedLineItems(
-          page,
-          offset,
-          undefined,
-          supplierId,
-        );
+        if (year != "NULL") {
+          pos = await this.liRepo.getDispatchedLineItems(page, offset, year);
+        } else {
+          pos = await this.liRepo.getDispatchedLineItems(page, offset);
+        }
       }
       return res.sendArrayFormatted(
         pos,

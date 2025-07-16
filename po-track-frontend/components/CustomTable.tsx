@@ -20,7 +20,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import Delete from "@/public/Icons/Delete";
 import { deleteData, putData } from "@/core/api/apiHandler";
-import { accountRoutes, bomRoutes } from "@/core/api/apiRoutes";
+import { accountRoutes } from "@/core/api/apiRoutes";
 import { queryClient } from "@/app/providers";
 
 import { toast } from "sonner";

@@ -629,13 +629,26 @@ class ProgressUpdateService {
 
   public async getOpenPo(req: Request, res: Response) {
     try {
+      const { status, supplier }: any = req.query;
       let openPo = [];
-      if (req.query.status && req.query.status != "") {
-        openPo = await this.progressUpdateRepo.getAllProgressUpdate(
-          req.query.status,
-        );
+      if (status != "") {
+        if (supplier !== "NULL") {
+          openPo = await this.progressUpdateRepo.getAllProgressUpdate(
+            status,
+            supplier,
+          );
+        } else {
+          openPo = await this.progressUpdateRepo.getAllProgressUpdate(status);
+        }
       } else {
-        openPo = await this.progressUpdateRepo.getAllProgressUpdate();
+        if (supplier !== "NULL") {
+          openPo = await this.progressUpdateRepo.getAllProgressUpdate(
+            undefined,
+            supplier,
+          );
+        } else {
+          openPo = await this.progressUpdateRepo.getAllProgressUpdate();
+        }
       }
       return res.sendArrayFormatted(openPo, "Fetched Purchase Orders", 200);
     } catch (error) {

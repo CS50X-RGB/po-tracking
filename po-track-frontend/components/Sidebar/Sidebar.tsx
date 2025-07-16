@@ -49,7 +49,7 @@ export default function Sidebar({
           {dashboardChip && (
             <Link
               href={dashboardChip.link}
-              className="flex flex-row text-sm font-bold items-center text-white"
+              className="flex flex-row-reverse gap-2 text-sm font-bold items-center text-white"
             >
               <p>Home</p>
               <House className="cursor-pointer hover:text-[#3e9392]" />
@@ -58,7 +58,7 @@ export default function Sidebar({
 
           {/* User icon with submenu */}
           <div className="relative group">
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-row-reverse items-center gap-2">
               <p className="text-sm">User</p>
               <UserRoundPen className="cursor-pointer hover:text-[#3e9392]" />
             </div>
@@ -83,7 +83,7 @@ export default function Sidebar({
 
           {/* PurchaseOrder icon with submenu */}
           <div className="relative group">
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-row-reverse items-center gap-2">
               <p className="text-sm">PO</p>
               <PurchaseOrder className="cursor-pointer hover:text-[#3e9392]" />
             </div>
@@ -106,7 +106,7 @@ export default function Sidebar({
           {chipGroups.part.length > 0 && (
             <div className="relative group">
               {/* Partnumber icon with submenu */}
-              <div className="flex flex-row gap-2 items-center">
+              <div className="flex flex-row-reverse gap-2 items-center">
                 <p className="text-[16px]">PartNo</p>
                 <Partnumber className="cursor-pointer hover:text-[#3e9392]" />
               </div>
@@ -131,7 +131,7 @@ export default function Sidebar({
           {/* MasterData icon with submenu */}
           {chipGroups.master.length > 0 && (
             <div className="relative group">
-              <div className="flex flex-row items-cen gap-2 items-center">
+              <div className="flex flex-row-reverse items-center gap-2">
                 <p>Master Data</p>
                 <MasterData className="cursor-pointer hover:text-[#3e9392]" />
               </div>
@@ -155,7 +155,10 @@ export default function Sidebar({
           )}
 
           {permissionChip && (
-            <Link href={permissionChip.link} className="text-white">
+            <Link
+              href={permissionChip.link}
+              className="text-white flex flex-row items-center gap-2"
+            >
               <p>Permissions</p>
               <Permissions className="cursor-pointer hover:text-[#3e9392]" />
             </Link>

@@ -3,7 +3,7 @@ import { queryClient } from "@/app/providers";
 import BomLoadingCardSkeleton from "@/components/Card/BomLoadingCard";
 import CustomModal from "@/components/Modal/CustomModal";
 import { getData, postData } from "@/core/api/apiHandler";
-import { progressUpdate } from "@/core/api/apiRoutes";
+import { progressUpdate, masterRoutes } from "@/core/api/apiRoutes";
 import {
   Card,
   CardHeader,
@@ -29,15 +29,21 @@ import { toast } from "sonner";
 export default function OpenPo() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<any>("");
+  const [supplier, setSupplier] = useState<any>("NULL");
+  const [fetching, setFetching] = useState<boolean>(false);
   const {
     data: getOpenPo,
     isFetched: isFetched,
     isFetching: isFetchingOpenPo,
   } = useQuery({
-    queryKey: ["getOpenPo", status],
+    queryKey: ["getOpenPo", status, supplier],
     queryFn: () => {
-      return getData(`${progressUpdate.getClientOpenPo}?status=${status}`, {});
+      return getData(
+        `${progressUpdate.getClientOpenPo}?status=${status}&supplier=${supplier}`,
+        {},
+      );
     },
+    enabled: fetching,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -45,18 +51,23 @@ export default function OpenPo() {
 
   useEffect(() => {
     const queryStatus = searchParams.get("status");
+    console.log(queryStatus, "status");
 
     if (queryStatus) {
       let formattedStatus = "";
+      console.log(formattedStatus, "status");
 
       if (queryStatus.toLowerCase() === "inprogress") {
         formattedStatus = "InProgress";
       } else if (queryStatus.toLowerCase() === "ready for inspection") {
         formattedStatus = "Ready for Inspection";
+      } else if (queryStatus.toLowerCase() === "awaiting pickup") {
+        formattedStatus = "AwaitingPickUp";
       }
 
       setStatus(formattedStatus);
     }
+    setFetching(true);
   }, [searchParams]);
 
   const deliveryStatusStyles: Record<string, string> = {
@@ -551,6 +562,13 @@ export default function OpenPo() {
       label: "Cancelled",
     },
   ];
+  const { data: getSuppliers } = useQuery({
+    queryKey: ["getSuppliers"],
+    queryFn: () => {
+      return getData(`${masterRoutes.getSupplier}?search=`, {});
+    },
+  });
+  let suppliersData = [];
 
   if (isFetchingOpenPo) {
     return (
@@ -561,22 +579,36 @@ export default function OpenPo() {
       </div>
     );
   } else {
+    suppliersData = getSuppliers?.data?.data?.data ?? [];
+
     return (
       <>
         <div className="flex flex-col items-center gap-4">
-          <Select
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-1/4 flex flex-row items-start p-3"
-            label="Select an Line Item Status"
-            selectedKeys={[status]}
-          >
-            {deliveryStatusOptions.map((animal) => (
-              <SelectItem key={animal.key}>{animal.label}</SelectItem>
-            ))}
-          </Select>
+          <div className="flex flex-row gap-4 p-4 justify-center items-center w-full">
+            <Select
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-1/4 flex flex-row items-start p-3"
+              label="Select an Line Item Status"
+              selectedKeys={[status]}
+            >
+              {deliveryStatusOptions.map((animal) => (
+                <SelectItem key={animal.key}>{animal.label}</SelectItem>
+              ))}
+            </Select>
+            <Select
+              onChange={(e) => setSupplier(e.target.value)}
+              className="w-1/4 flex flex-row items-start p-3"
+              label="Select Suppliers"
+              selectedKeys={[supplier.toString()]}
+            >
+              {suppliersData.map((animal: any) => (
+                <SelectItem key={animal._id}>{animal.name}</SelectItem>
+              ))}
+            </Select>
+          </div>
           {data.length === 0 ? (
             <div className="text-center text-gray-500 mt-8 text-xl font-bold">
-              <h1>No open purchase orders found.</h1>
+              <h1>No Open Purchase Orders found.</h1>
             </div>
           ) : (
             data.map((d: any, _: any) => {
